@@ -1,0 +1,20 @@
+# 의존성·빌드 결과 (npm ci, npm run build로 다시 생김)
+node_modules/
+dist/
+*.tsbuildinfo
+*.local
+
+# 로컬 도구 설정
+.claude/
+.vscode/
+.idea/
+*.log
+.DS_Store
+Thumbs.db
+
+# 옮기기용 압축 파일은 프로젝트 바깥에 둔다
+*.zip
+
+# 회사 실험 이미지는 저장소에 올리지 않는다 (보안).
+# 이 파일이 없으면 해당 테스트는 자동으로 건너뛴다.
+tests/fixtures/real-gel.png

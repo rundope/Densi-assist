@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23233'/><rect x='6' y='8' width='5' height='3' rx='1' fill='%23fff'/><rect x='13.5' y='8' width='5' height='3' rx='1' fill='%23fff' opacity='.6'/><rect x='21' y='8' width='5' height='3' rx='1' fill='%23fff' opacity='.3'/><rect x='6' y='18' width='5' height='2' rx='1' fill='%234cc'/><rect x='13.5' y='18' width='5' height='2' rx='1' fill='%234cc'/><rect x='21' y='18' width='5' height='2' rx='1' fill='%234cc'/></svg>" />
+    <title>Densi-assist</title>
+    <!-- file-guard -->
+    <script>
+      // 이 파일을 더블클릭해서(file://) 열면 개발용 페이지는 동작하지 않으므로,
+      // 같은 폴더의 단독 실행판(Densi-assist.html)으로 바로 이동한다.
+      if (location.protocol === 'file:') location.replace('Densi-assist.html');
+    </script>
+    <!-- /file-guard -->
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
