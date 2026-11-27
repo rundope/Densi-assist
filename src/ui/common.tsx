@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 
 const PATHS: Record<string, string> = {
   plus: 'M12 5v14M5 12h14',
+  clipboard: 'M9 3h6v4H9zM9 5H6a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-3M9 13h6M9 17h4',
   undo: 'M9 14 4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3',
   redo: 'm15 14 5-5-5-5M20 9H10a6 6 0 0 0 0 12h3',
   chev: 'm9 18 6-6-6-6',
