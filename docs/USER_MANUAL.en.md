@@ -185,7 +185,11 @@ You can do this right away without switching tools.
 
 Use this only when the **whole** image has strong stains or shading. Usually leave it on **사용 안 함** (Off) and rely on the baseline.
 
-- Choose Rolling ball or Paraboloid
+- Choose a method
+  - **롤링볼 / 파라볼로이드** (Rolling ball / Paraboloid): sets the whole background to 0 (ImageJ style). The picture turns white, but the lane baseline is still applied separately for measurement.
+  - **상수 빼기** (Subtract constant): subtracts one background value from the whole image. **기준 위치** (Reference position, %) is how much of the low-signal end is treated as background.
+  - **얼룩만 고르게** (Even out blotches only): evens out brightness blotches and **keeps the overall brightness**. The gentlest method.
+- **강도** (Strength, %): how much of the estimated background is subtracted. 100% subtracts all of it, 30% only part. Lower it when you want only a slight removal.
 - **반경** (Radius): larger than the widest band
 - **잡티 무시** (Ignore specks): smooths out small dust and noise first
 

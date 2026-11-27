@@ -9,7 +9,7 @@
 
 ## 0. 한 줄 요약
 
-전기영동 겔·웨스턴 블롯 사진에서 밴드 진하기를 정량하는 **브라우저 전용 웹앱**(ImageJ Gel Analyzer 대체). React 19 + TypeScript + Vite. 현재 v0.3.0(이후 기능 추가됨), 테스트 40개(`real-gel.png` 없으면 39 통과 + 1 skip). 설치 없이 쓰는 단독 실행판 `Densi-assist.html`(HTML 파일 하나, 약 1MB)도 빌드로 만들어진다. GitHub 업로드는 끝났고(저장소 `rundope/Densi-assist`, `main`), 저장소는 2026-11-27에 **공개로 전환**했고 Pages Source를 GitHub Actions로 설정해 배포에 성공했다. 실제 주소는 **`https://rundope.github.io/Densi-assist/`**(대소문자 구분. 소문자 `densi-assist`는 404). `main` push 시 자동 배포. 비공개로 되돌리면 무료 요금제에서 Pages가 불가하므로 `Densi-assist.html` 다운로드 방식을 쓴다. 개인 PC 경로는 공개 대비로 일반 표기(`<이전 PC>` 등)로 바꿨다. 홈페이지 탑재는 **준비만 되어 있고 아직 하지 않았다**.
+전기영동 겔·웨스턴 블롯 사진에서 밴드 진하기를 정량하는 **브라우저 전용 웹앱**(ImageJ Gel Analyzer 대체). React 19 + TypeScript + Vite. 현재 v0.3.0(이후 기능 추가됨), 테스트 45개(`real-gel.png` 없으면 44 통과 + 1 skip). 설치 없이 쓰는 단독 실행판 `Densi-assist.html`(HTML 파일 하나, 약 1MB)도 빌드로 만들어진다. GitHub 업로드는 끝났고(저장소 `rundope/Densi-assist`, `main`), 저장소는 2026-11-27에 **공개로 전환**했고 Pages Source를 GitHub Actions로 설정해 배포에 성공했다. 실제 주소는 **`https://rundope.github.io/Densi-assist/`**(대소문자 구분. 소문자 `densi-assist`는 404). `main` push 시 자동 배포. 비공개로 되돌리면 무료 요금제에서 Pages가 불가하므로 `Densi-assist.html` 다운로드 방식을 쓴다. 개인 PC 경로는 공개 대비로 일반 표기(`<이전 PC>` 등)로 바꿨다. 홈페이지 탑재는 **준비만 되어 있고 아직 하지 않았다**.
 
 ---
 
@@ -82,7 +82,7 @@
 | `types.ts` | 데이터 모델: `Project`, `Gel`, `Lane`, `Band`(`start/end/targetId/tilt/baseStart/baseEnd`), `BaselineSpec`, `DisplaySettings`(`applyToData`), `Calibration` 등. `PROJECT_SCHEMA = 'densi-project/1'`. **좌표 규칙**: 레인 `cx/top/bottom/width`는 전처리(회전) 후 이미지 px, 밴드 `start/end`는 `round(lane.top)` 기준 프로파일 인덱스(포함 구간), `tilt`는 레인 왼쪽 끝과 오른쪽 끝의 세로 차(px, 양수=오른쪽이 아래), `baseStart/baseEnd`는 프로파일 값 단위(null=그 위치의 프로파일 값) |
 | `io/decode.ts` | `decodeImage`(TIFF: geotiff, PNG 16-bit: fast-png, JPG/BMP: 브라우저), `detectFormat`, `sha256Hex`(WebCrypto 없으면 순수 JS `sha256`로 대체 — HTTP 서버 대응) |
 | `image/preprocess.ts` | `toGray`, `applyGeometry`(rotate90/flipH/미세회전), `gaussianBlur`(화면·측정용 분리형 블러), `toSignal`(극성: dark-bands 반전 / light-bands / OD), `applyDisplayTransform`(감마를 정량에 적용할 때), `suggestPolarity`(열 중앙값 제거 후 꼬리 비교), `percentile`, `histogram`(현재 UI에서는 안 씀) |
-| `image/background2d.ts` | `estimateBackground2D` — ImageJ rolling ball(축소·arcTrim·bilinear 확대) / sliding paraboloid 포팅. `ballParams`, `slideParabola` |
+| `image/background2d.ts` | `estimateBackground2D` — ImageJ rolling ball(축소·arcTrim·bilinear 확대) / sliding paraboloid 포팅. `ballParams`, `slideParabola`. **`removeBackground`**: 방법 5종(none / rolling-ball / paraboloid / **constant**(신호 낮은 쪽 N% 값 하나 빼기, 0 클램프) / **flatten**(롤링볼 배경을 매끈한 면으로 만든 뒤 평균을 뺀 변동분만 제거)) + **강도(%)**로 일부만 뺌. 워커가 이 함수를 호출 |
 | `profile.ts` | `extractProfile(signal, raw, satLevel, lane, settings, tilt)` — 레인 폭 평균/중앙값, 가장자리 제외 %, **tilt만큼 열마다 세로로 밀어 샘플링**, 좌우 바깥 띠(lane-edge용), 행별 포화 수. `laneColumns` |
 | `baseline/registry.ts` | 베이스라인 정의 `BASELINES`(16종 메타데이터: 설명·주의·파라미터), `VISIBLE_BASELINES`(화면 노출 7종), `computeBaseline`, `cloneSpec`(**immer draft 복사용**), `makeSpec`, `manualBandBaseline`(밴드별 시작·끝점 직선), `rollingBall1D`, `rubberBand`, `snip`, `asls/airpls/arpls/psalsa`, `modpoly`, `scaledLam`(λ를 1000점 기준 환산) |
 | `lanes.ts` | `detectLanes` — 행 하위10% 제거→열 점수→슬라이딩 최솟값으로 비네팅 제거→로그 압축→prominence 봉우리→봉우리 사이 최솟값 경계→반치폭으로 중심·폭→세로 범위 |
@@ -131,7 +131,7 @@
 ### tests/
 | 파일 | 내용 |
 |---|---|
-| `core.test.ts` | 40개(+화면용 가우시안 블러 3개, 원본/보정 후 표시 일관성 6개): Whittaker 솔버, 베이스라인 면적 회수, 2D 배경, 합성 겔(극성·레인·선형성), 16-bit TIFF, 실제 겔(레인 7개), 밴드 기울기, 수동 바닥선, SHA-256, 표준곡선, 정규화 |
+| `core.test.ts` | 45개(2D 배경 제거 5개 포함, +화면용 가우시안 블러 3개, 원본/보정 후 표시 일관성 6개): Whittaker 솔버, 베이스라인 면적 회수, 2D 배경, 합성 겔(극성·레인·선형성), 16-bit TIFF, 실제 겔(레인 7개), 밴드 기울기, 수동 바닥선, SHA-256, 표준곡선, 정규화 |
 | `fixtures/gel16.tif` | 합성 16-bit TIFF (저장소 포함) |
 | `fixtures/real-gel.png` | **사용자가 대화에 첨부한 실제 SDS-PAGE 사진**(사다리 + 시료 6레인). gitignore. 없으면 해당 테스트 skip |
 
@@ -155,7 +155,7 @@ npm run check
 
 | 명령 | 결과 |
 |---|---|
-| `npm test` | Vitest 40개 (real-gel.png 없으면 39 통과 + 1 skip) |
+| `npm test` | Vitest 45개 (real-gel.png 없으면 44 통과 + 1 skip) |
 | `npm run build` | `dist/`(웹 배포용, 상대 경로) + `Densi-assist.html`(루트와 `dist/` 양쪽) |
 | `npm run build:standalone` | `Densi-assist.html`만 |
 | `npm run preview` | `dist/` 미리보기 |
@@ -417,7 +417,7 @@ Densito Assist (<이전 PC 경로>/Densito-assist) is a browser-based gel/wester
 
 ## 12. 새 세션의 첫 체크리스트
 
-1. **설치와 검사**: `npm ci` → `npm run check`. 기대값: 타입 오류 0, 테스트 40개 중 39개 통과(`real-gel.png`가 없으면 1개 skip), 빌드 후 `Densi-assist.html` 갱신 로그. `npm ci`가 실패하면 먼저 `cdn.sheetjs.com` 접근 가능 여부 확인
+1. **설치와 검사**: `npm ci` → `npm run check`. 기대값: 타입 오류 0, 테스트 45개 중 44개 통과(`real-gel.png`가 없으면 1개 skip), 빌드 후 `Densi-assist.html` 갱신 로그. `npm ci`가 실패하면 먼저 `cdn.sheetjs.com` 접근 가능 여부 확인
 2. **개발 서버로 화면 확인**: `npm run dev` → 첫 화면에서 "데모 프로젝트로 둘러보기" → 이미지 3장, 레인·밴드 표시, ① ② ③ 도구 버튼, 결과 탭이 나오는지. (Claude 데스크톱 앱을 쓰면 3장의 `.claude/launch.json`을 다시 만든다)
 3. **단독 실행판 확인**: 탐색기에서 `index.html` 또는 `Densi-assist.html`을 더블클릭(Chrome/Edge) → 이미지 추가 → 레인 검출 (Auto) → 밴드 검출 (Auto)가 되는지
 4. **Git 상태 확인**: 새 컴퓨터에서 저장소로 받았는지(`git status`), 아니면 폴더 복사인지. 이 PC에서는 Git 커밋이 한 번도 없었음. GitHub에 올렸다면 Actions의 CI 통과 여부

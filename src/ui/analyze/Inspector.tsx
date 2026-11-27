@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { BASELINES, BASELINE_MAP, GROUP_LABELS, VISIBLE_BASELINES, cloneSpec, makeSpec, type BaselineGroup } from '../../core/baseline/registry';
-import type { BaselineMethod, BaselineSpec, Gel, Polarity, Project } from '../../core/types';
+import type { Background2DMethod, BaselineMethod, BaselineSpec, Gel, Polarity, Project } from '../../core/types';
 import { analyzeLane, type ProcessedGel } from '../../engine/engine';
 import { newBand, newTarget } from '../../state/project';
 import { findGel, useApp } from '../../state/store';
@@ -103,28 +103,51 @@ function PrepareSettings({ gel }: { gel: Gel }) {
       </Block>
 
       <Block title="배경 제거" sub="이미지 전체의 얼룩·그늘 (선택)"
-        help="이미지 전체의 얼룩·그늘을 지웁니다. 보통은 꺼 두고 ③ 단계의 베이스라인만 써도 충분합니다.">
+        help="이미지 전체의 얼룩·그늘을 지웁니다. 보통은 꺼 두고 ③ 단계의 베이스라인만 써도 충분합니다. 롤링볼·파라볼로이드는 배경을 0으로 맞추고, 상수 빼기는 배경 값 하나를 빼며, 얼룩만 고르게는 전체 밝기를 유지한 채 얼룩만 고릅니다. 강도로 얼마나 뺄지 조절할 수 있습니다.">
         <BackgroundSection gel={gel} />
       </Block>
     </>
   );
 }
 
+const BG_METHODS: { value: Background2DMethod; label: string; sub: string }[] = [
+  { value: 'none', label: '사용 안 함', sub: '배경을 건드리지 않습니다.' },
+  { value: 'rolling-ball', label: '롤링볼', sub: '배경 전체를 0으로 맞춥니다 (ImageJ 방식).' },
+  { value: 'paraboloid', label: '파라볼로이드', sub: '완만하게 휘는 배경에 알맞습니다 (ImageJ 방식).' },
+  { value: 'constant', label: '상수 빼기', sub: '이미지의 배경 값 하나를 통째로 뺍니다.' },
+  { value: 'flatten', label: '얼룩만 고르게', sub: '밝기 얼룩만 고르게 하고 전체 밝기는 유지합니다.' },
+];
+
 function BackgroundSection({ gel }: { gel: Gel }) {
   const up = useGelUpdate(gel.id);
   const b = gel.background;
+  const cur = BG_METHODS.find((m) => m.value === b.method) ?? BG_METHODS[0];
   return (
     <>
-      <div className="field">
-        <Seg value={b.method} onChange={(v) => up((g) => { g.background.method = v; })}
-          options={[{ value: 'none', label: '사용 안 함' }, { value: 'rolling-ball', label: 'Rolling ball' }, { value: 'paraboloid', label: 'Paraboloid' }]} />
+      <div className="chips" role="radiogroup" aria-label="배경 제거 방법">
+        {BG_METHODS.map((m) => (
+          <button key={m.value} role="radio" aria-checked={b.method === m.value} className={`chip ${b.method === m.value ? 'on' : ''}`}
+            onClick={() => up((g) => { g.background.method = m.value; })}>{m.label}</button>
+        ))}
       </div>
+      <div className="hint" style={{ margin: '2px 0 12px' }}>{cur.sub}</div>
       {b.method !== 'none' && (
         <>
-          <NumberSlider label="반경" unit="px" min={2} max={400} step={1} value={b.radius}
-            help="가장 두꺼운 밴드보다 크게 잡으세요."
-            onChange={(v) => up((g) => { g.background.radius = Math.round(v); }, 'bgRadius')} />
-          <label className="check"><input type="checkbox" checked={b.presmooth} onChange={(e) => up((g) => { g.background.presmooth = e.target.checked; })} />잡티 무시 (작은 먼지·노이즈를 먼저 고름)</label>
+          {b.method === 'constant' ? (
+            <NumberSlider label="기준 위치" unit="% (어두운 쪽부터)" min={0} max={50} step={1} value={b.constantPct ?? 10}
+              help="신호가 낮은 쪽(배경에 해당) 몇 %의 값을 배경으로 볼지 정합니다. 밴드가 이미지를 많이 차지하면 낮게, 배경이 넓으면 높게 잡으세요."
+              onChange={(v) => up((g) => { g.background.constantPct = Math.round(v); }, 'bgConst')} />
+          ) : (
+            <NumberSlider label="반경" unit="px" min={2} max={400} step={1} value={b.radius}
+              help="가장 두꺼운 밴드보다 크게 잡으세요."
+              onChange={(v) => up((g) => { g.background.radius = Math.round(v); }, 'bgRadius')} />
+          )}
+          <NumberSlider label="강도" unit="%" min={0} max={100} step={5} value={b.strength ?? 100}
+            help="추정한 배경을 얼마나 뺄지 정합니다. 100%는 모두 빼고, 낮추면 일부만 빼서 약하게 제거합니다."
+            onChange={(v) => up((g) => { g.background.strength = Math.round(v); }, 'bgStrength')} />
+          {b.method !== 'constant' && (
+            <label className="check"><input type="checkbox" checked={b.presmooth} onChange={(e) => up((g) => { g.background.presmooth = e.target.checked; })} />잡티 무시 (작은 먼지·노이즈를 먼저 고름)</label>
+          )}
         </>
       )}
     </>

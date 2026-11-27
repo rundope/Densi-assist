@@ -55,7 +55,7 @@ export function exportXlsx(project: Project, rows: BandRow[], summary: ReturnTyp
     ['프로젝트', project.name], ['내보낸 시각', new Date().toISOString()], ['앱 버전', APP_VERSION],
     ['바닥선이 프로파일보다 높은 곳', project.settings.negative === 'clip' ? '0으로 계산' : '빼서 계산'],
     ['기준 샘플', ref ?? ''], [],
-    ['이미지', '파일', 'SHA-256', '비트', '극성', '회전', '미세 회전', '2D 배경', '반경', '프로파일', '가장자리 제외 %', '베이스라인', '베이스라인 파라미터', '개별 베이스라인 레인 수', '레인 수', '감마', '감마를 정량에 적용', '부드럽게 (px)', '부드럽게를 정량에 적용'],
+    ['이미지', '파일', 'SHA-256', '비트', '극성', '회전', '미세 회전', '2D 배경', '반경', '프로파일', '가장자리 제외 %', '베이스라인', '베이스라인 파라미터', '개별 베이스라인 레인 수', '레인 수', '감마', '감마를 정량에 적용', '부드럽게 (px)', '부드럽게를 정량에 적용', '배경 제거 강도 (%)', '상수 기준 위치 (%)'],
   ];
   for (const g of project.gels) {
     set.push([
@@ -64,6 +64,7 @@ export function exportXlsx(project: Project, rows: BandRow[], summary: ReturnTyp
       BASELINE_MAP[g.baseline.method].label, JSON.stringify(g.baseline.params), g.lanes.filter((l) => l.baseline).length, g.lanes.length,
       g.display.gamma, g.display.gamma === 1 ? '해당 없음 (감마 1)' : g.display.applyToData ? '예 (비선형)' : '아니오 (표시 전용)',
       g.display.smooth ?? 0, (g.display.smooth ?? 0) > 0 ? (g.display.smoothApply ? '예' : '아니오 (표시 전용)') : '',
+      g.background.method === 'none' ? '' : g.background.strength ?? 100, g.background.method === 'constant' ? g.background.constantPct ?? 10 : '',
     ]);
   }
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(set), '설정');

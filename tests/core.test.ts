@@ -3,7 +3,7 @@ import { BASELINES, computeBaseline, makeSpec } from '../src/core/baseline/regis
 import { detectBands, measureBand } from '../src/core/bands';
 import { fitCalibration } from '../src/core/calibration';
 import { differenceGram, solveWhittaker } from '../src/core/math';
-import { estimateBackground2D } from '../src/core/image/background2d';
+import { estimateBackground2D, removeBackground } from '../src/core/image/background2d';
 import { synthesizeGel } from '../src/core/synthetic';
 import { gaussianBlur, suggestPolarity, toGray, toSignal } from '../src/core/image/preprocess';
 import { decodeImage, sha256 } from '../src/core/io/decode';
@@ -398,5 +398,51 @@ describe('이미지 준비 화면: 원본과 보정 후 이미지의 표시 일�
     const displayOnly = mk('dark-bands', { gamma: 2, applyToData: false });
     expect(correctedSource(baked.gel, baked.data).gamma).toBe(1);
     expect(correctedSource(displayOnly.gel, displayOnly.data).gamma).toBe(2);
+  });
+});
+
+describe('2D 배경 제거: 강도·상수 빼기·얼룩만 고르게', () => {
+  const w = 80, h = 60;
+  // 배경 50 + 가로 방향 기울기(0~20) + 가운데의 밴드(진폭 30)
+  const make = () => {
+    const a = new Float32Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const band = x > 30 && x < 50 && y > 25 && y < 35 ? 30 : 0;
+      a[y * w + x] = 50 + (20 * x) / w + band;
+    }
+    return a;
+  };
+  const base = { radius: 40, presmooth: false, strength: 100, constantPct: 10 };
+  const bgRegion = (a: Float32Array) => { const v: number[] = []; for (let y = 2; y < 12; y++) for (let x = 2; x < w - 2; x++) v.push(a[y * w + x]); return v; };
+  const mean = (v: number[]) => v.reduce((s2, x) => s2 + x, 0) / v.length;
+  const sd = (v: number[]) => Math.sqrt(mean(v.map((x) => (x - mean(v)) ** 2)));
+
+  it('none이면 아무것도 바꾸지 않고 null을 돌려준다', () => {
+    const a = make(); const before = Float32Array.from(a);
+    expect(removeBackground(a, w, h, { ...base, method: 'none' })).toBeNull();
+    expect(Array.from(a)).toEqual(Array.from(before));
+  });
+  it('강도 0%면 롤링볼도 아무것도 빼지 않는다', () => {
+    const a = make(); const before = Float32Array.from(a);
+    removeBackground(a, w, h, { ...base, method: 'rolling-ball', strength: 0 });
+    expect(Math.max(...Array.from(a).map((x, i) => Math.abs(x - before[i])))).toBe(0);
+  });
+  it('강도 50%는 100%의 절반만 뺀다 (배경 영역 평균)', () => {
+    const full = make(); removeBackground(full, w, h, { ...base, method: 'rolling-ball' });
+    const half = make(); removeBackground(half, w, h, { ...base, method: 'rolling-ball', strength: 50 });
+    const orig = bgRegion(make());
+    expect(mean(orig) - mean(bgRegion(half))).toBeCloseTo((mean(orig) - mean(bgRegion(full))) / 2, 0);
+  });
+  it('상수 빼기: 배경 값을 빼면 배경은 0 근처가 되고 밴드 높이는 보존된다', () => {
+    const a = make(); removeBackground(a, w, h, { ...base, method: 'constant', constantPct: 10 });
+    expect(Math.min(...Array.from(a))).toBeGreaterThanOrEqual(0);
+    expect(mean(bgRegion(a))).toBeLessThan(15);                       // 기울기 0~20 중 최솟값 근처를 뺐으므로
+    expect(a[30 * w + 40] - a[5 * w + 40]).toBeGreaterThan(25);       // 밴드 − 같은 열의 배경 ≈ 30
+  });
+  it('얼룩만 고르게: 기울기(얼룩)는 줄고 배경의 전체 밝기는 유지된다', () => {
+    const a = make(); const sd0 = sd(bgRegion(a)), mean0 = mean(bgRegion(a));
+    removeBackground(a, w, h, { ...base, method: 'flatten' });
+    expect(sd(bgRegion(a))).toBeLessThan(sd0 * 0.5);
+    expect(Math.abs(mean(bgRegion(a)) - mean0)).toBeLessThan(6);       // 롤링볼처럼 0으로 내려가지 않음
   });
 });

@@ -1,5 +1,7 @@
 // ImageJ BackgroundSubtracter (rolling ball / sliding paraboloid) 포팅.
 // 입력은 "밴드가 밝은(값이 큰)" 신호 이미지. 반환값은 추정 배경.
+import type { Background2D } from '../types';
+import { gaussianBlur, percentile } from './preprocess';
 
 export interface Bg2DOptions {
   method: 'rolling-ball' | 'paraboloid';
@@ -293,4 +295,76 @@ export function slideParabola(v: Float32Array, length: number, coeff2: number, c
     for (let j = i1 + 1; j < i2; j++) v[j] = v1 + (j - i1) * (minSlope - (j - i1) * coeff2);
     i1 = i2;
   }
+}
+
+/**
+ * 신호 이미지에서 배경을 빼서 그 자리에서 바꾸고, 실제로 뺀 양을 돌려준다(배경 제거 안 함이면 null).
+ * - rolling-ball / paraboloid: ImageJ 방식. 배경 전체를 0으로 맞춘다.
+ * - constant: 신호가 낮은 쪽 constantPct %의 값 하나를 통째로 뺀다 (TotalLab의 Constant와 같은 개념). 0 아래로는 내려가지 않는다.
+ * - flatten: 롤링볼로 추정한 배경에서 평균 밝기를 뺀 "변동분"만 제거한다. 얼룩은 고르게 하고 전체 배경 밝기는 유지한다.
+ * strength(0~100%)는 추정한 배경 중 얼마를 뺄지 정한다.
+ */
+export function removeBackground(
+  signal: Float32Array,
+  width: number,
+  height: number,
+  b: Background2D,
+  onProgress?: (fraction: number) => void,
+): Float32Array | null {
+  if (b.method === 'none') return null;
+  const k = Math.min(1, Math.max(0, (b.strength ?? 100) / 100));
+  let bg: Float32Array;
+  let clampAtZero = false;
+  if (b.method === 'constant') {
+    const pct = Math.min(100, Math.max(0, b.constantPct ?? 10));
+    bg = new Float32Array(signal.length).fill(percentile(signal, pct, pct)[0]);
+    clampAtZero = true;
+  } else {
+    bg = estimateBackground2D(signal, width, height, {
+      method: b.method === 'paraboloid' ? 'paraboloid' : 'rolling-ball',
+      radius: Math.max(1, b.radius),
+      presmooth: b.presmooth,
+      onProgress,
+    });
+    if (b.method === 'flatten') {
+      // 롤링볼 배경은 레인 사이 같은 국소 구조를 따라가 얼룩져 보이므로, 크게 뭉갠 매끈한 면으로 바꾼 뒤 평균을 뺀다
+      bg = smoothSurface(bg, width, height, Math.max(1, b.radius));
+      const mean = sum(bg) / bg.length;
+      for (let i = 0; i < bg.length; i++) bg[i] -= mean;
+    }
+  }
+  for (let i = 0; i < signal.length; i++) {
+    const applied = bg[i] * k;
+    bg[i] = applied;
+    const v = signal[i] - applied;
+    signal[i] = clampAtZero && v < 0 ? 0 : v;
+  }
+  return bg;
+}
+
+/** 배경 면을 축소 → 가우시안 → 쌍선형 확대로 매끈하게 만든다. sigmaPx는 대략 뭉개는 크기(px). */
+function smoothSurface(src: Float32Array, w: number, h: number, sigmaPx: number): Float32Array {
+  const s = Math.max(2, Math.min(32, Math.round(sigmaPx / 3)));
+  const sw = Math.max(1, Math.ceil(w / s)), sh = Math.max(1, Math.ceil(h / s));
+  const small = new Float32Array(sw * sh);
+  const cnt = new Float32Array(sw * sh);
+  for (let y = 0; y < h; y++) {
+    const row = Math.floor(y / s) * sw;
+    for (let x = 0; x < w; x++) { const k = row + Math.floor(x / s); small[k] += src[y * w + x]; cnt[k]++; }
+  }
+  for (let i = 0; i < small.length; i++) small[i] /= cnt[i] || 1;
+  const blurred = gaussianBlur(small, sw, sh, 3);
+  const out = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) {
+    const fy = Math.min(sh - 1, Math.max(0, (y + 0.5) / s - 0.5));
+    const y0 = Math.floor(fy), y1 = Math.min(sh - 1, y0 + 1), ty = fy - y0;
+    for (let x = 0; x < w; x++) {
+      const fx = Math.min(sw - 1, Math.max(0, (x + 0.5) / s - 0.5));
+      const x0 = Math.floor(fx), x1 = Math.min(sw - 1, x0 + 1), tx = fx - x0;
+      const top = blurred[y0 * sw + x0] * (1 - tx) + blurred[y0 * sw + x1] * tx;
+      const bot = blurred[y1 * sw + x0] * (1 - tx) + blurred[y1 * sw + x1] * tx;
+      out[y * w + x] = top * (1 - ty) + bot * ty;
+    }
+  }
+  return out;
 }

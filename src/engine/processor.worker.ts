@@ -1,5 +1,5 @@
 import { applyDisplayTransform, applyGeometry, gaussianBlur, percentile, toGray, toSignal } from '../core/image/preprocess';
-import { estimateBackground2D } from '../core/image/background2d';
+import { removeBackground } from '../core/image/background2d';
 import type { Background2D, DisplaySettings, Preprocess } from '../core/types';
 
 export interface ProcessRequest {
@@ -45,16 +45,8 @@ self.onmessage = (ev: MessageEvent<ProcessRequest>) => {
       ? applyDisplayTransform(base, 0, base.maxValue, req.display.gamma)
       : base;
     const signal = toSignal(forSignal, req.preprocess.polarity);
-    let bg: Float32Array | null = null;
-    if (req.background.method !== 'none') {
-      bg = estimateBackground2D(signal, geo.width, geo.height, {
-        method: req.background.method,
-        radius: Math.max(1, req.background.radius),
-        presmooth: req.background.presmooth,
-        onProgress: (fraction) => post({ id: req.id, type: 'progress', fraction }),
-      });
-      for (let i = 0; i < signal.length; i++) signal[i] -= bg[i];
-    }
+    // 배경 제거(방법·강도는 gel.background). 실제로 뺀 양은 bg로 돌려준다.
+    const bg = removeBackground(signal, geo.width, geo.height, req.background, (fraction) => post({ id: req.id, type: 'progress', fraction }));
     const signalRange = percentile(signal, 0.5, 99.8);
     const msg: ProcessResponse = { id: req.id, type: 'done', width: geo.width, height: geo.height, raw, signal, background: bg, signalRange };
     const transfer: Transferable[] = [raw.buffer, signal.buffer];
