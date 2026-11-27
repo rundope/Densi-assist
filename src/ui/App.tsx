@@ -231,8 +231,9 @@ function EmptyState() {
           onClick={async () => addImageFiles(await pickFiles(IMAGE_ACCEPT, true))}
           onDragEnter={() => setOver(true)} onDragLeave={() => setOver(false)} onDrop={() => setOver(false)}>
           <Icon name="upload" size={32} />
-          <h2>이미지를 끌어다 놓거나 클릭해 선택 (Ctrl+V 붙여넣기도 가능)</h2>
+          <h2>이미지를 끌어다 놓거나 클릭해 선택</h2>
           <div className="hint">TIFF (8/16/32-bit, 멀티페이지), PNG (16-bit 포함), JPG · 여러 장 동시에 가능</div>
+          <div className="hint"><b>Ctrl+V</b>를 누르면 복사한 이미지(화면 캡처 등)가 바로 붙여넣어집니다</div>
         </div>
         <div className="btn-row" style={{ justifyContent: 'center' }}>
           <button className="btn" onClick={() => createDemoProject()}><Icon name="sparkle" size={15} />데모 프로젝트로 둘러보기</button>
