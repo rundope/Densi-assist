@@ -42,7 +42,7 @@ Add images → ① Select → ② Lane → ③ Band → Results
 | Step | What you do | Required |
 |---|---|---|
 | Add images | Drag and drop gel images (several at once is fine) | ✔ |
-| ① **선택** (Select) | Check the band color (dark/light) and image adjustment (gamma, smoothing) | ✔ (mostly automatic) |
+| ① **이미지 준비** (Prepare image) | Check the band color (dark/light) and image adjustment (gamma, smoothing) | ✔ (mostly automatic) |
 | ② **레인** (Lane) | Draw lanes, or use **레인 검출 (Auto)** (Detect lanes) | ✔ |
 | ③ **밴드** (Band) | Draw bands, or use **밴드 검출 (Auto)** (Detect bands); adjust tilt | ✔ |
 | Baseline | Choose how the floor line under the bands is drawn | The default (Rolling ball) is usually enough |
@@ -59,8 +59,10 @@ Fastest route: **add images → ② 레인 → 레인 검출 (Auto) → ③ 밴�
 │ Densi-assist  [project]    [ A ]                 ↶ ↷   [ B ]   ?         │
 ├──────────────────────────────────────────────────────────────────────────┤
 │ C  image strip:  [thumb] [thumb] [thumb] ...                [+]          │
+├──────────────────────────────────────────────────────────────────────────┤
+│ D  (1)━━(2)──(3)──(4)    "To do now: ..."            [ Next → ]          │
 ├───────────────────┬──────────────────────────────────────────────────────┤
-│                   │ [▢][▦]   D                                           │
+│                   │ [▢][▦]                                               │
 │                   │ ──────────────────────────────────────────────────── │
 │        H          │                                              [ E ]   │
 │   settings panel  │              image with lanes and bands              │
@@ -75,7 +77,7 @@ Fastest route: **add images → ② 레인 → 레인 검출 (Auto) → ③ 밴�
 | **A** Tabs | **분석** / **결과** | **Analyze** (measuring) and **Results** (tables, charts, export) |
 | **B** Project menu | **프로젝트 ▾** | Add images, new project, save/open, demo |
 | **C** Image list | **이미지 N** | Images you added. Click one to open it. Double-click a name to rename it |
-| **D** Step buttons | **1 선택 › 2 레인 › 3 밴드** | Select › Lane › Band. The current step is shown in blue, and only that step's items open in panel H |
+| **D** Step bar | **1 이미지 준비 › 2 레인 › 3 밴드 › 4 결과** | Prepare image › Lane › Band › Results. Click a large step or the blue **다음** (Next) button to move on. The current step is blue, finished steps get a green check, and a **지금 할 일** (To do now) line tells you what to do. Panel H opens that step's items |
 | — Image view | | Lanes (magenta, blue when selected) and bands (orange) are drawn on the image |
 | **E** Original view | **원본 이미지 보기** | Top right of the image. Hides lanes and bands so you can compare with the original (key **O**) |
 | **F** Zoom buttons | | Bottom right of the image: zoom out, zoom in, fit to screen, 1:1 actual size |
@@ -83,7 +85,7 @@ Fastest route: **add images → ② 레인 → 레인 검출 (Auto) → ③ 밴�
 | **H** Settings panel | | Click a heading to open or close it. All are closed at first |
 | ↶ ↷ | | Undo / redo (Ctrl+Z / Ctrl+Shift+Z) |
 
-The settings panel (H) is grouped as: **1. 선택** (Select) → **① 이미지** (Image) / **2. 레인** (Lane) → **② 배경 제거** (Background removal), **③ 레인** (Lanes) / **3. 밴드** (Band) → **④ 베이스라인** (Baseline), **⑤ 밴드 · 타깃** (Bands · Targets).
+The settings panel (H) is grouped as: **1. 이미지 준비** (Prepare image) → **① 이미지** (Image) / **2. 레인** (Lane) → **② 배경 제거** (Background removal), **③ 레인** (Lanes) / **3. 밴드** (Band) → **④ 베이스라인** (Baseline), **⑤ 밴드 · 타깃** (Bands · Targets).
 
 > New to the app? Use **프로젝트 ▾ → 데모 프로젝트 만들기** (Create demo project), or **데모 프로젝트로 둘러보기** (Explore with demo project) on the start screen, to open a project with three sample images.
 
@@ -110,7 +112,7 @@ The settings panel (H) is grouped as: **1. 선택** (Select) → **① 이미지
 
 ## 4. ① Select — check the image
 
-Click **① 선택** (Select) at the top. The **① 이미지** (Image) settings open on the left.
+After you add an image you start at **① 이미지 준비** (Prepare image). The original and the **image used for measurement** are shown side by side, and changing the **① 이미지** (Image) settings on the left (band color, color → gray, tilt, gamma, smoothing) updates the right-hand image immediately. Bands are read as **brighter = larger value**, and this image is used for all calculations in ② Lanes, ③ Bands and ④ Results. When you are ready, click **다음: 레인 잡기** (Next: Lanes) at the top right.
 
 ### Band color
 

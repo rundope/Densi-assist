@@ -89,7 +89,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .save-state.error { color: var(--err); }
 
 .main { min-height: 0; overflow: hidden; }
-.analyze { display: grid; grid-template-columns: 330px 1fr; grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "strip strip" "inspector center"; height: 100%; min-height: 0; }
+.analyze { display: grid; grid-template-columns: 330px 1fr; grid-template-rows: auto auto minmax(0, 1fr); grid-template-areas: "strip strip" "steps steps" "inspector center"; height: 100%; min-height: 0; }
 .analyze.no-gels { grid-template-columns: 1fr; }
 
 /* ---------- controls ---------- */
@@ -160,12 +160,6 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--line-st
 .toolbar .gel-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 220px; }
 .toolbar .sep { width: 1px; height: 20px; background: var(--line); margin: 0 4px; }
 /* 작업 단계 버튼 (1 선택 › 2 레인 › 3 밴드) */
-.step-tool { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 14px 0 6px; border-radius: 16px; border: 1.5px solid var(--line-strong); background: var(--panel); color: var(--text); font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap; }
-.step-tool .num { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; background: var(--panel-2); border: 1px solid var(--line-strong); color: var(--text-2); }
-.step-tool:hover { border-color: var(--accent); }
-.step-tool.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(37, 99, 235, .35); }
-.step-tool.active .num { background: #fff; border-color: #fff; color: var(--accent); }
-.step-arrow { color: var(--text-3); font-size: 18px; margin: 0 -2px; }
 /* 선택한 도구 옆에 붙는 세부 동작 */
 .subtools { display: flex; gap: 4px; padding: 2px 4px; border-radius: 8px; background: var(--accent-weak); margin-left: -2px; }
 .subtools .btn { border-color: transparent; }
@@ -332,7 +326,7 @@ table.tbl { border-collapse: collapse; width: 100%; font-size: 12px; }
 }
 @media (max-width: 820px) {
   body { overflow: auto; }
-  .analyze { grid-template-columns: 1fr; grid-template-rows: auto minmax(420px, 1fr) auto; grid-template-areas: "strip" "center" "inspector"; height: auto; }
+  .analyze { grid-template-columns: 1fr; grid-template-rows: auto auto minmax(420px, 1fr) auto; grid-template-areas: "strip" "steps" "center" "inspector"; height: auto; }
   .inspector { border-right: 0; border-top: 1px solid var(--line); }
   .cal-layout { grid-template-columns: 1fr; }
   .main { overflow: auto; }
@@ -348,3 +342,38 @@ table.tbl { border-collapse: collapse; width: 100%; font-size: 12px; }
 .help-pop { position: fixed; z-index: 60; width: 268px; padding: 9px 11px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line-strong); box-shadow: 0 6px 24px rgba(0, 0, 0, .18); font-size: 12px; line-height: 1.5; color: var(--text); font-weight: 400; text-transform: none; letter-spacing: 0; }
 .label-extra { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--text-2); cursor: pointer; white-space: nowrap; }
 .label-extra input { margin: 0; }
+
+/* ---------- 작업 순서(스텝바) ---------- */
+.stepper { grid-area: steps; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; padding: 10px 16px; background: linear-gradient(180deg, #f3f8ff, #eaf3ff); border-bottom: 1px solid #c9dcf7; }
+.steps { display: flex; align-items: center; list-style: none; margin: 0; padding: 0; }
+.step-item { display: flex; align-items: center; }
+.step-line { width: 34px; height: 3px; border-radius: 2px; background: #cdd6e4; margin: 0 6px; }
+.step-line.on { background: var(--accent); }
+.step { display: flex; align-items: center; gap: 10px; padding: 6px 16px 6px 7px; border-radius: 999px; border: 2px solid #c3cddd; background: #fff; color: var(--text); cursor: pointer; text-align: left; transition: transform .12s, border-color .12s, box-shadow .12s; }
+.step:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(10, 124, 255, .22); }
+.step-num { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 15px; font-weight: 700; background: #e6ebf3; color: #4a5568; flex: none; }
+.step-text { display: grid; line-height: 1.2; }
+.step-text b { font-size: 15px; }
+.step-text small { font-size: 11.5px; color: var(--text-3); }
+.step.current { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 14px rgba(10, 124, 255, .38); }
+.step.current .step-num { background: #fff; color: var(--accent); }
+.step.current .step-text small { color: rgba(255, 255, 255, .85); }
+.step.done { border-color: #9bd8b8; background: #f3fbf7; }
+.step.done .step-num { background: #1fa463; color: #fff; }
+.step-guide { flex: 1; min-width: 320px; display: flex; align-items: center; gap: 10px; }
+.step-guide .todo { color: var(--text-2); font-size: 12.5px; }
+.step-guide .todo b { color: var(--accent); margin-right: 4px; }
+.step-guide .grow { flex: 1; }
+.step-guide .btn.next { height: 36px; padding: 0 18px; font-size: 14px; font-weight: 700; box-shadow: 0 3px 10px rgba(10, 124, 255, .3); }
+
+/* ---------- ① 이미지 준비 화면 ---------- */
+.prepare { min-height: 0; overflow: auto; padding: 14px; background: var(--canvas-bg, #f4f6f9); display: grid; grid-template-rows: minmax(0, 1fr) auto; gap: 10px; }
+.prep-pair { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: stretch; min-height: 0; }
+.prep-arrow { align-self: center; font-size: 26px; color: var(--accent); font-weight: 700; }
+.prep-card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; overflow: hidden; }
+.prep-card header { display: flex; flex-direction: column; gap: 1px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.prep-card header small { color: var(--text-3); font-size: 11.5px; }
+.prep-stage { min-height: 0; padding: 10px; display: grid; place-items: center; background: #1f2430; }
+.prep-canvas { max-width: 100%; max-height: 100%; width: auto; height: auto; object-fit: contain; background: #000; }
+.prep-foot { font-size: 12px; color: var(--text-2); }
+@media (max-width: 1100px) { .step-text small { display: none; } .step-line { width: 18px; } }
