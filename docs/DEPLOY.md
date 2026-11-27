@@ -131,13 +131,13 @@ BASE_PATH=/tools/densi-assist/ npm run build
 
 ### 3-4. GitHub Pages로 바로 띄우기 (선택)
 
-> 현재 저장소는 비공개라 무료 요금제에서 Pages를 켤 수 없어(2026-11-27 확인), 자동 배포(`main` push 시)는 켜 두었으나 비공개인 동안은 실패합니다. 저장소를 공개하거나 유료 요금제로 바꾸면 아래 절차로 동작합니다. 그 전에는 3-5의 단독 실행판을 쓰세요.
+> 이 저장소는 2026-11-27에 공개로 전환하고 Pages를 켰습니다. 비공개 저장소는 무료 요금제에서 Pages를 쓸 수 없으니, 다시 비공개로 바꾸면 3-5의 단독 실행판을 쓰세요.
 
 사내 테스트용으로 GitHub Pages를 쓸 수도 있습니다.
 
 1. 저장소 **Settings → Pages → Source: GitHub Actions** (처음 한 번만)
 2. `main`에 push하면 자동 배포됨. 수동으로 하려면 **Actions → Deploy to GitHub Pages → Run workflow**
-3. 완료되면 `https://<조직또는계정>.github.io/densi-assist/` 에서 열립니다.
+3. 완료되면 `https://<조직또는계정>.github.io/<저장소 이름>/` (대소문자 구분. 이 저장소는 `https://rundope.github.io/Densi-assist/`) 에서 열립니다.
 
 > 비공개 저장소의 Pages는 GitHub 유료 요금제가 필요하고, 조직 설정에 따라 막혀 있을 수 있습니다.
 

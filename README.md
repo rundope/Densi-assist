@@ -1,5 +1,7 @@
 # Densi-assist
 
+### 👉 [바로 사용하기: https://rundope.github.io/Densi-assist/](https://rundope.github.io/Densi-assist/)
+
 겔·웨스턴 블롯 밴드의 진하기를 정량하는 웹 기반 densitometry 도구입니다.
 **모든 처리는 브라우저 안에서 이루어지며, 이미지는 서버로 전송되지 않습니다.**
 
@@ -64,7 +66,11 @@ npm run dev
 
 ## 바로 사용하기
 
-설치 없이, 파일 하나로 실행합니다. (저장소가 비공개라 무료 요금제에서는 GitHub Pages URL을 쓸 수 없습니다.)
+### 방법 1. 웹 주소로 바로 열기 (권장)
+
+**[https://rundope.github.io/Densi-assist/](https://rundope.github.io/Densi-assist/)** — 주소의 대소문자를 정확히 입력해야 합니다. `main`에 push되면 자동으로 갱신됩니다.
+
+### 방법 2. 파일 하나 받아서 실행 (오프라인 가능)
 
 1. 저장소 첫 화면에서 **[`Densi-assist.html`](Densi-assist.html)** 을 클릭
 2. 파일 화면 오른쪽 위의 **다운로드 아이콘(Download raw file)** 클릭 (화면에서 바로 열면 코드 글자만 보이니 꼭 다운로드)
