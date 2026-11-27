@@ -29,11 +29,35 @@ export function App() {
       if (proj) openProjectFile(proj);
       else addImageFiles(files);
     };
+    // 클립보드에 복사한 이미지(캡처·다른 프로그램에서 복사)나 탐색기에서 복사한 이미지 파일을 Ctrl+V로 추가
+    const paste = (e: ClipboardEvent) => {
+      const cd = e.clipboardData;
+      if (!cd) return;
+      let files = Array.from(cd.files).filter((f) => f.type.startsWith('image/') || /\.(tiff?|png|jpe?g|bmp)$/i.test(f.name));
+      if (!files.length) {
+        files = Array.from(cd.items)
+          .filter((it) => it.kind === 'file' && it.type.startsWith('image/'))
+          .map((it) => it.getAsFile())
+          .filter((f): f is File => f !== null);
+      }
+      if (!files.length) return; // 글자 붙여넣기는 건드리지 않음
+      e.preventDefault();
+      const stamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '-');
+      const named = files.map((f, i) => {
+        // 클립보드 이미지는 이름이 "image.png"로 고정되어 있어 구분되는 이름을 붙임
+        if (f.name && f.name.toLowerCase() !== 'image.png') return f;
+        const ext = f.type === 'image/jpeg' ? 'jpg' : f.type === 'image/bmp' ? 'bmp' : 'png';
+        return new File([f], `붙여넣은 이미지 ${stamp}${files.length > 1 ? `-${i + 1}` : ''}.${ext}`, { type: f.type });
+      });
+      addImageFiles(named);
+    };
+    window.addEventListener('paste', paste);
     window.addEventListener('dragenter', enter);
     window.addEventListener('dragleave', leave);
     window.addEventListener('dragover', over);
     window.addEventListener('drop', drop);
     return () => {
+      window.removeEventListener('paste', paste);
       window.removeEventListener('dragenter', enter);
       window.removeEventListener('dragleave', leave);
       window.removeEventListener('dragover', over);
@@ -178,7 +202,7 @@ function HelpModal({ onClose }: { onClose: () => void }) {
         위쪽 도구는 작업 순서대로 <b>1. 선택 → 2. 레인 → 3. 밴드</b>입니다. 도구를 누르면 오른쪽 패널에서 그 단계에 필요한 항목만 펼쳐집니다.
       </p>
       <ol style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 6 }}>
-        <li><b>이미지 올리기</b>: 이미저 원본 TIFF(16-bit 권장)를 여러 장 한 번에 끌어다 놓습니다.</li>
+        <li><b>이미지 올리기</b>: 원본 TIFF(16-bit 권장)를 여러 장 한 번에 끌어다 놓거나, 복사한 이미지를 <b>Ctrl+V</b>로 붙여넣습니다. (캡처 이미지는 8-bit라 정량 정확도가 원본보다 떨어질 수 있음)</li>
         <li><b>1. 선택</b> → ① 이미지: 밴드 색(어두운/밝은 밴드)과 화면 밝기를 확인합니다. 화면 밝기·감마는 기본적으로 측정값에 영향이 없습니다.</li>
         <li><b>2. 레인</b> → <b>레인 그리기</b> 또는 <b>레인 검출 (Auto)</b>. 그린 레인은 바로 끌어서 옮기고, 가장자리를 끌어 상하좌우 크기를 바꿉니다. ③ 레인에서 샘플 이름을 입력합니다(같은 이름은 겔을 넘어 묶입니다). ② 배경 제거는 얼룩이 심할 때만 씁니다.</li>
         <li><b>3. 밴드</b> → <b>밴드 그리기</b> 또는 <b>밴드 검출 (Auto)</b>. 이미지에서는 위아래로, 아래 그래프에서는 좌우로 드래그해 밴드를 만듭니다. 밴드를 끌면 이동하고, 양 끝 동그라미로 <b>기울기</b>를 맞춥니다.</li>
@@ -207,7 +231,7 @@ function EmptyState() {
           onClick={async () => addImageFiles(await pickFiles(IMAGE_ACCEPT, true))}
           onDragEnter={() => setOver(true)} onDragLeave={() => setOver(false)} onDrop={() => setOver(false)}>
           <Icon name="upload" size={32} />
-          <h2>이미지를 끌어다 놓거나 클릭해 선택</h2>
+          <h2>이미지를 끌어다 놓거나 클릭해 선택 (Ctrl+V 붙여넣기도 가능)</h2>
           <div className="hint">TIFF (8/16/32-bit, 멀티페이지), PNG (16-bit 포함), JPG · 여러 장 동시에 가능</div>
         </div>
         <div className="btn-row" style={{ justifyContent: 'center' }}>
