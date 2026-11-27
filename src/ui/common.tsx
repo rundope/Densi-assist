@@ -104,19 +104,34 @@ export function Seg<T extends string | number>({ value, options, onChange }: { v
 
 export function Menu({ button, children, align = 'right' }: { button: (open: boolean, toggle: () => void) => ReactNode; children: (close: () => void) => ReactNode; align?: 'left' | 'right' }) {
   const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState<{ top: number; left?: number; right?: number } | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (!open) return;
     const onDown = (e: MouseEvent) => { if (!ref.current?.contains(e.target as Node)) setOpen(false); };
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    const close = () => setOpen(false);
     window.addEventListener('mousedown', onDown);
     window.addEventListener('keydown', onKey);
-    return () => { window.removeEventListener('mousedown', onDown); window.removeEventListener('keydown', onKey); };
+    window.addEventListener('resize', close);
+    // 가로로 스크롤되는 이미지 띠 안에서도 잘리지 않도록 메뉴는 화면 기준(fixed)으로 띄우고, 스크롤하면 닫는다
+    document.addEventListener('scroll', close, true);
+    return () => {
+      window.removeEventListener('mousedown', onDown); window.removeEventListener('keydown', onKey);
+      window.removeEventListener('resize', close); document.removeEventListener('scroll', close, true);
+    };
   }, [open]);
+  const toggle = () => {
+    if (!open && ref.current) {
+      const r = ref.current.getBoundingClientRect();
+      setPos(align === 'left' ? { top: r.bottom + 4, left: Math.max(8, r.left) } : { top: r.bottom + 4, right: Math.max(8, window.innerWidth - r.right) });
+    }
+    setOpen((o) => !o);
+  };
   return (
     <div className="menu-wrap" ref={ref}>
-      {button(open, () => setOpen((o) => !o))}
-      {open && <div className={`menu ${align === 'left' ? 'left' : ''}`}>{children(() => setOpen(false))}</div>}
+      {button(open, toggle)}
+      {open && pos && <div className={`menu ${align === 'left' ? 'left' : ''}`} style={{ position: 'fixed', top: pos.top, left: pos.left, right: pos.right }}>{children(() => setOpen(false))}</div>}
     </div>
   );
 }

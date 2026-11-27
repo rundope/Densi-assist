@@ -42,7 +42,7 @@ Add images → ① Select → ② Lane → ③ Band → Results
 | Step | What you do | Required |
 |---|---|---|
 | Add images | Drag and drop gel images (several at once is fine) | ✔ |
-| ① **선택** (Select) | Check the band color (dark/light) and display brightness | ✔ (mostly automatic) |
+| ① **선택** (Select) | Check the band color (dark/light) and image adjustment (gamma, smoothing) | ✔ (mostly automatic) |
 | ② **레인** (Lane) | Draw lanes, or use **레인 검출 (Auto)** (Detect lanes) | ✔ |
 | ③ **밴드** (Band) | Draw bands, or use **밴드 검출 (Auto)** (Detect bands); adjust tilt | ✔ |
 | Baseline | Choose how the floor line under the bands is drawn | The default (Rolling ball) is usually enough |
@@ -122,18 +122,25 @@ Click **① 선택** (Select) at the top. The **① 이미지** (Image) settings
 
 A suitable option is suggested as soon as the image is added, so you can usually leave it as is.
 
-### Display brightness
+### Image adjustment (gamma · smoothing)
 
-- **Display range graph**: drag the two vertical lines left or right to adjust brightness and contrast on screen.
-- **감마** (Gamma): adjusts tone so faint bands are easier to see.
-- **자동 대비** (Auto contrast) / **초기화** (Reset) buttons.
+- **감마 (밝기 조절)** (Gamma, brightness): changes the brightness curve so faint bands are easier to see. 1 is the original brightness.
+- **부드럽게 (노이즈 제거)** (Smoothing, noise removal): a blur (0–3 px) that reduces dotted patterns and noise.
+- The **측정에도 적용** (Apply to measurements) check box next to each slider is on by default, so bands are measured on the adjusted image. Turn it off to apply the change to the display only.
 - **배경 제거된 이미지로 보기** (View background-removed image): shows the result of ② Background removal on screen.
 
-> **Changing brightness or gamma does not change the measured values.** They only affect the display; calculations always use the original pixel values.
-> They are kept separate because putting gamma into the calculation would make the ratios between bands differ from the real ratios of the amounts.
-> If you really need it, you can turn on **밝기·감마를 측정값에도 적용** (Apply brightness/gamma to measurements). The results and the Excel file then show that this was used.
+> **If gamma is applied to measurements**, the ratios between bands can differ from the real ratios of the amounts. For that reason, when gamma is not 1 the results and the Excel file carry a note. For accurate comparisons keep gamma at 1 or turn the check box off.
 
-> **Smoothing**: a blur (0–3 px) that reduces dotted patterns and noise. With **측정에도 적용** (Apply to measurements, on by default) next to the slider, bands are measured on the smoothed image; turn it off to smooth the display only. Larger values can reduce the area of narrow bands (about 3–6% at 1.5 px on the sample image). The setting is recorded on the Excel "설정" sheet.
+#### Smoothing before / after
+
+This image was reduced to 16 gray levels and shows a dotted (dithering) pattern. Images copied from PowerPoint or screenshots are sometimes this rough. Left: **0**, right: **1.5 px**.
+
+| Smoothing 0 (before) | Smoothing 1.5 px (after) |
+|---|---|
+| ![Before smoothing](images/smoothing-before.png) | ![After smoothing](images/smoothing-after.png) |
+
+> **Note**: larger values can reduce the area of narrow bands (about 3–6% at 1.5 px on a sample image). Process all images of one comparison with **the same value**. The setting is recorded on the Excel "설정" sheet. Whenever possible, use the original TIFF for the most accurate results.
+
 
 ### Image tilt correction
 

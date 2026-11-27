@@ -30,7 +30,7 @@ export function ResultsView() {
   const summary = useMemo(() => summarize(rows, 'area', null, ref), [rows, ref]);
   const tname = (id: string | null) => project.targets.find((t) => t.id === id)?.name ?? '';
   const saturated = rows.filter((r) => r.saturatedPixels > 0).length;
-  const nonLinear = project.gels.filter((g) => g.display.applyToData);
+  const nonLinear = project.gels.filter((g) => g.display.applyToData && g.display.gamma !== 1);
   const activeTarget = chartTarget && summary.targets.includes(chartTarget) ? chartTarget : summary.targets[0] ?? null;
 
   if (!project.gels.length) {
@@ -140,7 +140,7 @@ export function ResultsView() {
               {(saturated > 0 || nonLinear.length > 0) && (
                 <div className="card-body btn-row" style={{ paddingBottom: 0 }}>
                   {saturated > 0 && <span className="badge warn">포화 픽셀이 있는 밴드 {saturated}개 — 값이 작게 나올 수 있음</span>}
-                  {nonLinear.length > 0 && <span className="badge warn">밝기·감마가 측정값에 적용된 이미지: {nonLinear.map((g) => g.name).join(', ')}</span>}
+                  {nonLinear.length > 0 && <span className="badge warn">감마가 측정값에 적용된 이미지: {nonLinear.map((g) => g.name).join(', ')}</span>}
                 </div>
               )}
               <div className="table-wrap">

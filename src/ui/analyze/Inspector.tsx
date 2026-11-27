@@ -1,6 +1,5 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { BASELINES, BASELINE_MAP, GROUP_LABELS, VISIBLE_BASELINES, cloneSpec, makeSpec, type BaselineGroup } from '../../core/baseline/registry';
-import { histogram, percentile } from '../../core/image/preprocess';
 import type { BaselineMethod, BaselineSpec, Gel, Polarity, Project } from '../../core/types';
 import { analyzeLane, type ProcessedGel } from '../../engine/engine';
 import { newBand, newTarget } from '../../state/project';
@@ -16,7 +15,7 @@ export function Inspector({ gel, data }: { gel: Gel; data: ProcessedGel | null }
   return (
     <aside className="inspector">
       <Group tool="select" label="1. 선택" />
-      <SectionBox id="image" step={1} title="이미지" desc="밴드 색과 화면 밝기" done summary={polarityLabel(gel.preprocess.polarity)}>
+      <SectionBox id="image" step={1} title="이미지" desc="밴드 색과 이미지 보정" done summary={polarityLabel(gel.preprocess.polarity)}>
         <ImageSection gel={gel} data={data} />
       </SectionBox>
 
@@ -129,103 +128,19 @@ function ImageSection({ gel, data }: { gel: Gel; data: ProcessedGel | null }) {
       <NumberSlider label="이미지 기울기 보정" help="사진이 살짝 기울어 찍혔을 때 바로잡습니다. 측정에 반영됩니다." unit="도" min={-10} max={10} step={0.1} value={p.rotateFine}
         onChange={(v) => up((g) => { g.preprocess.rotateFine = v; }, 'rotateFine')} />
 
-      <div className="subhead">화면 밝기<Help>세로선을 끌어 화면에 보이는 밝기 범위를 정합니다. 기본은 화면에만 적용되고 측정값은 바뀌지 않습니다.</Help></div>
-      <Histogram gel={gel} data={data} />
-      <NumberSlider label="감마" min={0.1} max={4} step={0.05} value={d.gamma}
-        help="밝기 곡선을 비선형으로 바꿔 어두운 곳·밝은 곳을 보기 좋게 합니다. 측정에도 적용하면 밴드 사이 비율이 실제와 달라질 수 있어 결과에 표시가 남습니다. (표시 범위의 두 세로선도 함께 적용됩니다.)"
-        extra={<label className="label-extra" title="켜면 감마와 표시 범위를 측정에도 사용합니다"><input type="checkbox" checked={d.applyToData} onChange={(e) => up((g) => { g.display.applyToData = e.target.checked; })} />측정에도 적용</label>}
+      <div className="subhead">이미지 보정</div>
+      <NumberSlider label="감마 (밝기 조절)" min={0.1} max={4} step={0.05} value={d.gamma}
+        help="화면 밝기 곡선을 바꿉니다. 1이 원래 밝기이고, 1보다 크면 어두운 곳이 밝아집니다. 측정에도 적용하면 밴드 사이 비율이 실제와 달라질 수 있어 감마가 1이 아닐 때 결과에 표시가 남습니다."
+        extra={<label className="label-extra" title="켜면 감마를 측정에도 사용합니다"><input type="checkbox" checked={d.applyToData} onChange={(e) => up((g) => { g.display.applyToData = e.target.checked; })} />측정에도 적용</label>}
         onChange={(v) => up((g) => { g.display.gamma = v; }, 'gamma')} />
-      <NumberSlider label="부드럽게" unit="px" min={0} max={3} step={0.1} value={d.smooth ?? 0}
+      <NumberSlider label="부드럽게 (노이즈 제거)" unit="px" min={0} max={3} step={0.1} value={d.smooth ?? 0}
         help="점무늬·잡음을 줄입니다(가우시안 블러). 측정에도 적용하면 부드러워진 이미지에서 밴드를 읽습니다. 값이 클수록 더 뭉개져 가는 밴드가 퍼질 수 있으니 필요한 만큼만 쓰세요."
         extra={<label className="label-extra" title="켜면 부드럽게 한 이미지에서 측정합니다"><input type="checkbox" checked={d.smoothApply ?? true} onChange={(e) => up((g) => { g.display.smoothApply = e.target.checked; })} />측정에도 적용</label>}
         onChange={(v) => up((g) => { g.display.smooth = v; }, 'smooth')} />
-      <div className="btn-row" style={{ marginBottom: 8 }}>
-        <button className="btn sm" disabled={!data} onClick={() => {
-          if (!data) return;
-          const [lo, hi] = percentile(data.raw, 0.35, 99.65);
-          up((g) => { g.display.min = lo; g.display.max = hi > lo ? hi : lo + 1; });
-        }}>자동 대비</button>
-        <button className="btn sm" onClick={() => up((g) => { g.display.min = 0; g.display.max = g.bitDepth === 8 ? 255 : g.bitDepth === 16 ? 65535 : g.display.max; g.display.gamma = 1; })}>초기화</button>
-      </div>
       <label className="check"><input type="checkbox" checked={d.showCorrected} onChange={(e) => up((g) => { g.display.showCorrected = e.target.checked; })} />배경 제거된 이미지로 보기</label>
     </>
   );
 }
-
-function Histogram({ gel, data }: { gel: Gel; data: ProcessedGel | null }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-  const up = useGelUpdate(gel.id);
-  const range = useMemo(() => {
-    if (!data) return null;
-    const full = gel.bitDepth === 8 ? 255 : gel.bitDepth === 16 ? 65535 : data.maxValue;
-    const [lo, hi] = percentile(data.raw, 0, 100);
-    const a = Math.min(0, lo), b = Math.max(full, hi);
-    return { a, b, h: histogram(data.raw, a, b, 256) };
-  }, [data, gel.bitDepth]);
-  const dragging = useRef<'min' | 'max' | null>(null);
-
-  useEffect(() => {
-    const c = ref.current;
-    if (!c || !range) return;
-    const W = c.clientWidth * devicePixelRatio, H = c.clientHeight * devicePixelRatio;
-    c.width = W; c.height = H;
-    const ctx = c.getContext('2d')!;
-    ctx.clearRect(0, 0, W, H);
-    const css = getComputedStyle(c);
-    let max = 1;
-    for (const v of range.h) max = Math.max(max, Math.log1p(v));
-    ctx.fillStyle = css.getPropertyValue('--text-3') || '#888';
-    const bw = W / range.h.length;
-    range.h.forEach((v, i) => {
-      const hh = (Math.log1p(v) / max) * (H - 6);
-      ctx.fillRect(i * bw, H - hh, Math.max(1, bw - 0.5), hh);
-    });
-    const X = (v: number) => ((v - range.a) / (range.b - range.a)) * W;
-    const x0 = X(gel.display.min), x1 = X(gel.display.max);
-    ctx.strokeStyle = css.getPropertyValue('--accent') || '#2563eb';
-    ctx.lineWidth = 2 * devicePixelRatio;
-    ctx.beginPath();
-    for (let k = 0; k <= 40; k++) {
-      const t = k / 40;
-      const x = x0 + (x1 - x0) * t;
-      const yv = Math.pow(t, 1 / gel.display.gamma);
-      if (k === 0) ctx.moveTo(x, H - yv * (H - 4) - 2); else ctx.lineTo(x, H - yv * (H - 4) - 2);
-    }
-    ctx.stroke();
-    ctx.fillStyle = ctx.strokeStyle;
-    ctx.fillRect(x0 - devicePixelRatio, 0, 2 * devicePixelRatio, H);
-    ctx.fillRect(x1 - devicePixelRatio, 0, 2 * devicePixelRatio, H);
-  }, [range, gel.display.min, gel.display.max, gel.display.gamma]);
-
-  if (!range) return <canvas className="histogram" />;
-  const valueAt = (e: React.PointerEvent) => {
-    const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    return range.a + ((e.clientX - r.left) / r.width) * (range.b - range.a);
-  };
-  return (
-    <div className="field">
-      <canvas ref={ref} className="histogram"
-        onPointerDown={(e) => {
-          (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-          const v = valueAt(e);
-          dragging.current = Math.abs(v - gel.display.min) < Math.abs(v - gel.display.max) ? 'min' : 'max';
-        }}
-        onPointerMove={(e) => {
-          if (!dragging.current) return;
-          const v = valueAt(e);
-          up((g) => {
-            if (dragging.current === 'min') g.display.min = Math.min(v, g.display.max - 1);
-            else g.display.max = Math.max(v, g.display.min + 1);
-          }, 'hist');
-        }}
-        onPointerUp={() => { dragging.current = null; }}
-      />
-      <div className="label"><span>표시 범위 (세로선을 끌어 조절)</span><span className="value mono">{fmt(gel.display.min, 5)} – {fmt(gel.display.max, 5)}</span></div>
-    </div>
-  );
-}
-
-// ---------------- ② 배경 제거 ----------------
 
 function BackgroundSection({ gel }: { gel: Gel }) {
   const up = useGelUpdate(gel.id);

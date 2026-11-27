@@ -94,8 +94,8 @@ export const engine = {
   version: () => version,
 
   processingKey(gel: Gel) {
-    // 표시 설정은 보통 정량에 영향이 없으므로, 데이터에 적용할 때만 키에 넣는다
-    const display = gel.display.applyToData ? [gel.display.min, gel.display.max, gel.display.gamma] : null;
+    // 표시 범위는 화면 전용이므로 키에 넣지 않고, 감마를 측정에 적용할 때만 넣는다
+    const display = gel.display.applyToData && gel.display.gamma !== 1 ? gel.display.gamma : null;
     // 부드럽게 한 이미지를 측정에도 쓸 때만 키에 넣는다 (화면 전용이면 다시 처리할 필요 없음)
     const smooth = gel.display.smoothApply && gel.display.smooth > 0 ? gel.display.smooth : 0;
     return JSON.stringify([gel.imageKey, gel.page, gel.preprocess, gel.background, display, smooth]);

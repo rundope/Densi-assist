@@ -40,8 +40,9 @@ self.onmessage = (ev: MessageEvent<ProcessRequest>) => {
     const base = smoothSigma > 0 ? { ...geo, data: gaussianBlur(raw, geo.width, geo.height, smoothSigma) } : { ...geo, data: raw };
     // 감마·표시 범위를 정량에 적용하기로 했다면 신호를 만들기 전에 변환한다.
     // raw(원본 값)는 화면 표시와 포화 판정을 위해 그대로 둔다.
-    const forSignal = req.display.applyToData
-      ? applyDisplayTransform(base, req.display.min, req.display.max, req.display.gamma)
+    // 감마는 0~최대값 전체를 기준으로 적용한다(표시 범위는 화면 전용). 감마 1이면 아무것도 바꾸지 않는다.
+    const forSignal = req.display.applyToData && req.display.gamma !== 1
+      ? applyDisplayTransform(base, 0, base.maxValue, req.display.gamma)
       : base;
     const signal = toSignal(forSignal, req.preprocess.polarity);
     let bg: Float32Array | null = null;
