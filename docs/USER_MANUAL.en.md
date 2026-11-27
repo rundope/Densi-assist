@@ -191,7 +191,7 @@ Use this only when the **whole** image has strong stains or shading. Usually lea
   - **얼룩만 고르게** (Even out blotches only): evens out brightness blotches and **keeps the overall brightness**. The gentlest method.
 - **강도** (Strength, %): how much of the estimated background is subtracted. 100% subtracts all of it, 30% only part. Lower it when you want only a slight removal.
 - **반경** (Radius): larger than the widest band
-- **잡티 무시** (Ignore specks): before estimating the background, slightly blurs the image in 3×3 pixel blocks so small dust and noise dots do not pull the background down (ImageJ default). On noisy images (8-bit screenshots etc.) it can cut into faint bands, so compare the results with it on and off.
+- **잡티 무시** (Ignore specks): before estimating the background, slightly blurs the image in 3×3 pixel blocks so small dust and noise dots do not pull the background down. **Off by default** (ImageJ turns it on by default). On noisy images (8-bit screenshots etc.) it can cut into faint bands, so compare the results with it on and off.
 
 ---
 
