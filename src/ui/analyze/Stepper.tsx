@@ -13,18 +13,20 @@ const STEPS: Step[] = [
   { key: 'results', title: '결과', sub: '표·엑셀 내보내기', next: '' },
 ];
 
-interface Guide { now: string; ready: boolean }
+interface Guide { now: string; ready: boolean; tip?: string }
 
 /** 지금 단계에서 할 일. 할 일을 끝냈으면(ready) 다음 버튼으로 넘어가라고 안내한다 */
+const GRAPH_TIP = '아래 그래프: "선택 레인"은 한 레인씩 자세히, "전체 레인 비교"는 모든 레인과 밴드를 한눈에 보여 줘요.';
+
 function guideFor(step: number, lanes: number, bands: number): Guide {
   if (step === 0) return { now: '왼쪽에서 밴드 색과 보정을 확인하세요. 오른쪽 "보정 후" 이미지가 바로 바뀝니다.', ready: true };
   if (step === 1) {
     return lanes > 0
-      ? { now: `레인 ${lanes}개를 잡았어요. 위치·폭을 확인하세요 (레인 끌기: 이동 · 테두리 끌기: 크기 · 빈 곳 클릭: 추가).`, ready: true }
-      : { now: '"레인 검출 (Auto)"을 누르세요. 직접 그리려면 이미지 위를 끌거나, 레인 자리를 클릭하세요.', ready: false };
+      ? { now: `레인 ${lanes}개를 잡았어요. 빠진 레인이 있으면 클릭하거나 끌어서 추가하세요.`, ready: true, tip: GRAPH_TIP }
+      : { now: '이미지 위를 클릭하거나 끌어서 레인을 그리세요. "레인 검출 (Auto)"로 자동으로 잡을 수도 있어요 (놓치는 레인이 있을 수 있음).', ready: false };
   }
   return bands > 0
-    ? { now: `밴드 ${bands}개를 잡았어요. 아래 그래프에서 밴드 범위를 확인하세요.`, ready: true }
+    ? { now: `밴드 ${bands}개를 잡았어요. 아래 그래프에서 밴드 범위를 확인하세요.`, ready: true, tip: GRAPH_TIP }
     : { now: '"밴드 검출 (Auto)"을 누르세요. 직접 그리려면 레인 안을 위아래로 끌거나, 아래 그래프를 좌우로 끄세요.', ready: false };
 }
 
@@ -68,6 +70,7 @@ export function Stepper() {
             <img className="mascot" src={SPOONBILL_LOGO} alt="" aria-hidden />
             <div key={`${cur}-${guide.now}`} className={`bubble ${guide.ready ? 'ready' : ''}`} role="status">
               <span className="bubble-now"><b>지금 할 일</b> {guide.now}</span>
+              {guide.tip && <span className="bubble-tip">💡 {guide.tip}</span>}
               {guide.ready && <span className="bubble-next">다 됐으면 → <b>다음: {STEPS[cur].next}</b>를 누르세요</span>}
             </div>
           </div>

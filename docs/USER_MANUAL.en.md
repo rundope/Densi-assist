@@ -159,6 +159,8 @@ Click **② 레인** (Lane) at the top. The top of the left panel shows **three 
 | **클릭해서 추가** (Click to add) | A single click on an empty spot adds a lane of the same size as the selected lane (or the last lane) at that spot |
 | **레인 검출 (Auto)** (Detect lanes) | Finds lanes automatically, including lanes that touch each other and size-marker (ladder) lanes. The button is in the left panel and in the toolbar above the image |
 
+> **Automatic detection can miss lanes.** After detecting, compare the lane count with the image, and draw any missing lane yourself by clicking or dragging.
+
 ### Moving and resizing lanes
 
 You can do this right away without switching tools.
@@ -231,7 +233,7 @@ Click **③ 밴드** (Band) at the top. Two buttons appear next to it.
 - The image strip above the graph is the selected lane laid on its side, so positions line up with the graph.
 - Each peak shows the band number and **% (its share within that lane)**.
 - Hover over the graph to see position, profile, baseline and signal values at the top right.
-- **전체 레인 비교** (Compare all lanes): shows small graphs of every lane side by side. Useful for checking that the baseline is drawn similarly in each lane.
+- **그래프 보기** (Graph view) switch (blue-bordered buttons at the top right of the graph): **선택 레인** (Selected lane) shows one lane large, and **전체 레인 비교** (Compare all lanes) shows small graphs and bands of every lane side by side. Useful for checking that the baseline and bands are set similarly in each lane. The Spoonbill bubble also points to these two views.
 
 ### ⑤ 밴드 · 타깃 (Bands · Targets, left panel)
 
@@ -273,8 +275,7 @@ Set it **larger than the widest band**. It is set as a percentage of the lane le
 
 ### Drawing the baseline manually
 
-1. Choose **수동 (밴드 시작·끝점)** as the method, or click **수동으로 다듬기** (Refine manually) above the graph.
-   - "Refine manually" uses the current automatic baseline as a starting point and switches only that lane to manual.
+1. Choose **수동 (밴드 시작·끝점)** as the baseline method in the left panel.
 2. The **circles** at both ends of each band in the graph become larger.
 3. Drag a circle:
    - **horizontally** → band start/end position

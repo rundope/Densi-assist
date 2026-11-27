@@ -58,13 +58,18 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
     setView({ scale, tx: (size.width - data.width * scale) / 2, ty: (size.height - data.height * scale) / 2 });
   }, [data, size.width, size.height]);
 
+  // 사용자가 직접 확대·이동하기 전에는 화면 크기가 바뀔 때마다(그래프 높이 조절, 창 크기 변경) 다시 맞춘다
+  const userMoved = useRef(false);
   useLayoutEffect(() => {
     const k = `${gel.id}|${data?.width}x${data?.height}`;
     if (data && size.width && fittedFor.current !== k) {
       fittedFor.current = k;
+      userMoved.current = false;
+      fit();
+    } else if (data && size.width && !userMoved.current) {
       fit();
     }
-  }, [gel.id, data, size.width, fit]);
+  }, [gel.id, data, size.width, size.height, fit]);
 
   // 이미지 렌더
   useEffect(() => {
@@ -88,7 +93,7 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
     const up = (e: KeyboardEvent) => { if (e.code === 'Space') setSpace(false); };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
-    const onFit = () => fit();
+    const onFit = () => { userMoved.current = false; fit(); };
     window.addEventListener('densi:fit', onFit);
     return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); window.removeEventListener('densi:fit', onFit); };
   }, [fit]);
@@ -99,6 +104,7 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
   };
 
   const onWheel = (e: React.WheelEvent) => {
+    userMoved.current = true;
     const r = wrapRef.current!.getBoundingClientRect();
     const mx = e.clientX - r.left, my = e.clientY - r.top;
     const factor = Math.exp(-e.deltaY * 0.0015);
@@ -110,6 +116,7 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
   };
 
   const zoomBy = (f: number) => {
+    userMoved.current = true;
     setView((v) => {
       const mx = size.width / 2, my = size.height / 2;
       const scale = Math.min(40, Math.max(0.02, v.scale * f));
@@ -191,6 +198,7 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
     const clampY = (v: number) => Math.max(0, Math.min(data.height, v));
     switch (drag.kind) {
       case 'pan':
+        userMoved.current = true;
         setView((v) => ({ ...v, tx: drag.tx + e.clientX - drag.sx, ty: drag.ty + e.clientY - drag.sy }));
         if (!panLearned && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 30) {
           sessionStorage.setItem(PAN_LEARNED_KEY, '1');
@@ -486,8 +494,8 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
       <div className="view-controls">
         <button className="btn sm icon" onClick={() => zoomBy(1 / 1.25)} title="축소"><Icon name="zoomout" size={14} /></button>
         <button className="btn sm icon" onClick={() => zoomBy(1.25)} title="확대"><Icon name="zoomin" size={14} /></button>
-        <button className="btn sm icon" onClick={fit} title="화면에 맞춤 (F)"><Icon name="fit" size={14} /></button>
-        <button className="btn sm icon" onClick={() => setView((v) => ({ ...v, scale: 1, tx: size.width / 2 - (data?.width ?? 0) / 2, ty: size.height / 2 - (data?.height ?? 0) / 2 }))} title="100% 원본 크기">1:1</button>
+        <button className="btn sm icon" onClick={() => { userMoved.current = false; fit(); }} title="화면에 맞춤 (F)"><Icon name="fit" size={14} /></button>
+        <button className="btn sm icon" onClick={() => { userMoved.current = true; setView((v) => ({ ...v, scale: 1, tx: size.width / 2 - (data?.width ?? 0) / 2, ty: size.height / 2 - (data?.height ?? 0) / 2 })); }} title="100% 원본 크기">1:1</button>
       </div>
     </div>
   );

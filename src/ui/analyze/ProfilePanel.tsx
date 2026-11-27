@@ -5,7 +5,6 @@ import { analyzeLane, variantFor, type LaneAnalysis, type ProcessedGel } from '.
 import { BAND_DEFAULT_COLOR } from '../colors';
 import { newBand } from '../../state/project';
 import { findGel, useApp } from '../../state/store';
-import { detectBandsAction } from '../../state/actions';
 import { renderToImageData, sourceFor, fmt, fmtPct } from '../render';
 import { Icon, useElementSize } from '../common';
 
@@ -47,24 +46,6 @@ export function ProfilePanel({ gel, data }: { gel: Gel; data: ProcessedGel | nul
   const spec = lane?.baseline ?? gel.baseline;
   const def = BASELINE_MAP[spec.method];
 
-  const convertToManual = () => {
-    if (!lane || !an) return;
-    // 지금 자동 바닥선이 밴드 양 끝에서 지나는 높이를 시작점·끝점으로 옮겨 담는다
-    const anchors = new Map(lane.bands.map((b) => {
-      const v = variantFor(an, b.tilt ?? 0);
-      return [b.id, [v.baseline[b.start], v.baseline[b.end]] as const];
-    }));
-    update((d) => {
-      const l = findGel(d, gel.id)?.lanes.find((x) => x.id === lane.id);
-      if (!l) return;
-      l.baseline = { method: 'manual', params: {} };
-      for (const b of l.bands) {
-        const a = anchors.get(b.id);
-        if (a) { b.baseStart = a[0]; b.baseEnd = a[1]; }
-      }
-    });
-  };
-
   return (
     <div className="profile-panel" style={{ height: ui.profileHeight }}>
       <div className="resize-handle" onPointerDown={onResize} onPointerMove={onResizeMove} title="드래그해 높이 조절" />
@@ -84,23 +65,21 @@ export function ProfilePanel({ gel, data }: { gel: Gel; data: ProcessedGel | nul
           <span className="hint">레인을 선택하면 프로파일이 표시됩니다.</span>
         )}
         <div className="spacer" />
-        <div className="seg">
-          <button className={!ui.showAllLanes ? 'on' : ''} onClick={() => setUi({ showAllLanes: false })}>선택 레인</button>
-          <button className={ui.showAllLanes ? 'on' : ''} onClick={() => setUi({ showAllLanes: true })}>전체 레인 비교</button>
-        </div>
-        {lane && !ui.showAllLanes && (
-          <>
-            <button className={`btn sm ${ui.tool === 'band' ? 'active' : ''}`} onClick={() => useApp.getState().setTool(ui.tool === 'band' ? 'select' : 'band')} title="그래프나 이미지에서 드래그해 밴드 추가 (B)">
-              <Icon name="band" size={14} />밴드 그리기
-            </button>
-            {spec.method === 'manual' ? (
-              <span className="hint">동그라미 끌기: 시작·끝점과 바닥 높이 · 우클릭: 자동으로</span>
-            ) : (
-              <button className="btn sm" onClick={convertToManual} title="지금 바닥선을 출발점으로 삼아, 밴드마다 시작·끝점을 직접 옮기는 수동 모드로 바꿉니다"><Icon name="point" size={14} />수동으로 다듬기</button>
-            )}
-            <button className="btn sm" onClick={() => lane && detectBandsAction(gel.id, [lane.id])}><Icon name="wand" size={14} />밴드 검출</button>
-          </>
+        {lane && !ui.showAllLanes && spec.method === 'manual' && (
+          <span className="hint">동그라미 끌기: 시작·끝점과 바닥 높이 · 우클릭: 자동으로</span>
         )}
+        {/* 그래프 보기 전환: 한 레인씩 자세히 / 모든 레인을 한눈에. 눈에 잘 띄게 크게 */}
+        <div className="graph-mode" role="tablist" aria-label="그래프 보기">
+          <span className="graph-mode-label">그래프 보기</span>
+          <button role="tab" aria-selected={!ui.showAllLanes} className={!ui.showAllLanes ? 'on' : ''} onClick={() => setUi({ showAllLanes: false })}
+            title="선택한 레인 하나의 프로파일을 크게 봅니다 (← → 로 레인 넘기기)">
+            <Icon name="single" size={15} />선택 레인
+          </button>
+          <button role="tab" aria-selected={ui.showAllLanes} className={ui.showAllLanes ? 'on' : ''} onClick={() => setUi({ showAllLanes: true })}
+            title="모든 레인의 프로파일과 밴드를 한눈에 나란히 비교합니다">
+            <Icon name="grid" size={15} />전체 레인 비교
+          </button>
+        </div>
       </div>
       <div className="profile-body">
         {ui.showAllLanes ? (
