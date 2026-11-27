@@ -352,6 +352,7 @@ describe('이미지 준비 화면: 원본과 보정 후 이미지의 표시 일�
     const data = { width: w, height: h, raw, signal, maxValue: 255 } as unknown as ProcessedGel;
     const gel = {
       preprocess: { polarity },
+      background: { method: 'none' },
       display: { min: 100, max: 230, gamma: 1, showCorrected: false, applyToData: true, smooth: 0, smoothApply: true, ...display },
     } as unknown as Gel;
     return { data, gel };
@@ -377,6 +378,20 @@ describe('이미지 준비 화면: 원본과 보정 후 이미지의 표시 일�
     const { data, gel } = mk('dark-bands', { smooth: 1.5, smoothApply: false });
     expect(same(correctedSource(gel, data).values, gaussianBlur(raw, w, h, 1.5))).toBeLessThan(1e-3);
     expect(same(Float32Array.from(data.signal, (v) => 255 - v), raw)).toBeLessThan(1e-3);
+  });
+  it('배경 제거로 배경이 밝게 올라가도 흐린 밴드가 흰색으로 잘리지 않는다', () => {
+    // 배경 200, 흐린 밴드 190인 이미지에서 배경 신호(55)를 통째로 빼면, 되돌린 값은 배경 255·밴드 245가 된다.
+    const faint = new Float32Array(w * h).fill(200);
+    for (let y = 8; y < 12; y++) for (let x = 5; x < 25; x++) faint[y * w + x] = 190;
+    const sig = toSignal({ width: w, height: h, data: faint, maxValue: 255, channels: 1 } as never, 'dark-bands').map((v) => v - 55);
+    const data = { width: w, height: h, raw: faint, signal: sig, maxValue: 255 } as unknown as ProcessedGel;
+    const gel = { preprocess: { polarity: 'dark-bands' }, background: { method: 'rolling-ball' },
+      display: { min: 100, max: 230, gamma: 1, showCorrected: false, applyToData: true, smooth: 0, smoothApply: true } } as unknown as Gel;
+    const c = correctedSource(gel, data);
+    const map = (v: number) => (v - c.min) / (c.max - c.min);
+    const band = map(255 - sig[10 * w + 10]), bg = map(255 - sig[1 * w + 1]);
+    expect(bg - band).toBeGreaterThan(0.02);   // 배경과 밴드가 구별되어야 함
+    expect(band).toBeLessThan(0.999);          // 밴드가 최대 밝기로 잘리면 안 됨
   });
   it('감마: 측정에 적용하면 이미 반영되어 화면 감마는 1, 화면에만이면 화면 감마를 쓴다', () => {
     const baked = mk('dark-bands', { gamma: 2, applyToData: true });

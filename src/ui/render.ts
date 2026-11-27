@@ -1,6 +1,6 @@
 import type { Gel } from '../core/types';
 import type { ProcessedGel } from '../engine/engine';
-import { gaussianBlur } from '../core/image/preprocess';
+import { gaussianBlur, percentile } from '../core/image/preprocess';
 
 const LUT_SIZE = 4096;
 
@@ -46,6 +46,21 @@ function restoredValues(data: ProcessedGel): Float32Array {
   return out;
 }
 
+/**
+ * 배경 제거를 켜면 배경이 0으로 내려가서, 되돌린 값에서는 배경이 가장 밝은 값(예: 255)이 된다.
+ * 원본의 밝기 범위(예: 102~221)를 그대로 쓰면 배경과 흐린 밴드가 모두 흰색으로 잘려 보이므로,
+ * 배경 제거 후에는 보정된 값 자체에서 범위를 다시 잡는다. (측정값은 영향받지 않는 표시 문제)
+ */
+const rangeCache = new WeakMap<Float32Array, [number, number]>();
+function autoRange(values: Float32Array): [number, number] {
+  const hit = rangeCache.get(values);
+  if (hit) return hit;
+  const [lo, hi] = percentile(values, 0.05, 99.95);
+  const r: [number, number] = [lo, hi > lo ? hi : lo + 1];
+  rangeCache.set(values, r);
+  return r;
+}
+
 /** 원본 이미지: 올린 그대로. 화면 밝기 범위만 적용한다. */
 export function originalSource(gel: Gel, data: ProcessedGel): RenderSource {
   const d = gel.display;
@@ -67,9 +82,11 @@ export function correctedSource(gel: Gel, data: ProcessedGel): RenderSource {
   const values = p === 'dark-bands' ? restoredValues(data) : p === 'light-bands' ? data.signal : data.raw;
   const baked = p === 'dark-bands' || p === 'light-bands';
   const shown = sigma > 0 && !(baked && smoothBaked) ? smoothed(values, data.width, data.height, sigma) : values;
+  const bgRemoved = baked && gel.background.method !== 'none';
+  const [min, max] = bgRemoved ? autoRange(restoredValues(data)) : [d.min, d.max > d.min ? d.max : d.min + 1];
   return {
     width: data.width, height: data.height, values: shown,
-    min: d.min, max: d.max > d.min ? d.max : d.min + 1,
+    min, max,
     gamma: baked && gammaBaked ? 1 : d.gamma, invert: false,
   };
 }

@@ -9,7 +9,7 @@
 
 ## 0. 한 줄 요약
 
-전기영동 겔·웨스턴 블롯 사진에서 밴드 진하기를 정량하는 **브라우저 전용 웹앱**(ImageJ Gel Analyzer 대체). React 19 + TypeScript + Vite. 현재 v0.3.0(이후 기능 추가됨), 테스트 39개(`real-gel.png` 없으면 38 통과 + 1 skip). 설치 없이 쓰는 단독 실행판 `Densi-assist.html`(HTML 파일 하나, 약 1MB)도 빌드로 만들어진다. GitHub 업로드는 끝났고(저장소 `rundope/Densi-assist`, `main`), 저장소는 2026-11-27에 **공개로 전환**했고 Pages Source를 GitHub Actions로 설정해 배포에 성공했다. 실제 주소는 **`https://rundope.github.io/Densi-assist/`**(대소문자 구분. 소문자 `densi-assist`는 404). `main` push 시 자동 배포. 비공개로 되돌리면 무료 요금제에서 Pages가 불가하므로 `Densi-assist.html` 다운로드 방식을 쓴다. 개인 PC 경로는 공개 대비로 일반 표기(`<이전 PC>` 등)로 바꿨다. 홈페이지 탑재는 **준비만 되어 있고 아직 하지 않았다**.
+전기영동 겔·웨스턴 블롯 사진에서 밴드 진하기를 정량하는 **브라우저 전용 웹앱**(ImageJ Gel Analyzer 대체). React 19 + TypeScript + Vite. 현재 v0.3.0(이후 기능 추가됨), 테스트 40개(`real-gel.png` 없으면 39 통과 + 1 skip). 설치 없이 쓰는 단독 실행판 `Densi-assist.html`(HTML 파일 하나, 약 1MB)도 빌드로 만들어진다. GitHub 업로드는 끝났고(저장소 `rundope/Densi-assist`, `main`), 저장소는 2026-11-27에 **공개로 전환**했고 Pages Source를 GitHub Actions로 설정해 배포에 성공했다. 실제 주소는 **`https://rundope.github.io/Densi-assist/`**(대소문자 구분. 소문자 `densi-assist`는 404). `main` push 시 자동 배포. 비공개로 되돌리면 무료 요금제에서 Pages가 불가하므로 `Densi-assist.html` 다운로드 방식을 쓴다. 개인 PC 경로는 공개 대비로 일반 표기(`<이전 PC>` 등)로 바꿨다. 홈페이지 탑재는 **준비만 되어 있고 아직 하지 않았다**.
 
 ---
 
@@ -131,7 +131,7 @@
 ### tests/
 | 파일 | 내용 |
 |---|---|
-| `core.test.ts` | 39개(+화면용 가우시안 블러 3개, 원본/보정 후 표시 일관성 5개): Whittaker 솔버, 베이스라인 면적 회수, 2D 배경, 합성 겔(극성·레인·선형성), 16-bit TIFF, 실제 겔(레인 7개), 밴드 기울기, 수동 바닥선, SHA-256, 표준곡선, 정규화 |
+| `core.test.ts` | 40개(+화면용 가우시안 블러 3개, 원본/보정 후 표시 일관성 6개): Whittaker 솔버, 베이스라인 면적 회수, 2D 배경, 합성 겔(극성·레인·선형성), 16-bit TIFF, 실제 겔(레인 7개), 밴드 기울기, 수동 바닥선, SHA-256, 표준곡선, 정규화 |
 | `fixtures/gel16.tif` | 합성 16-bit TIFF (저장소 포함) |
 | `fixtures/real-gel.png` | **사용자가 대화에 첨부한 실제 SDS-PAGE 사진**(사다리 + 시료 6레인). gitignore. 없으면 해당 테스트 skip |
 
@@ -155,7 +155,7 @@ npm run check
 
 | 명령 | 결과 |
 |---|---|
-| `npm test` | Vitest 39개 (real-gel.png 없으면 38 통과 + 1 skip) |
+| `npm test` | Vitest 40개 (real-gel.png 없으면 39 통과 + 1 skip) |
 | `npm run build` | `dist/`(웹 배포용, 상대 경로) + `Densi-assist.html`(루트와 `dist/` 양쪽) |
 | `npm run build:standalone` | `Densi-assist.html`만 |
 | `npm run preview` | `dist/` 미리보기 |
@@ -233,6 +233,7 @@ gitignore 대상이라 새 컴퓨터에는 없다. 필요하면 아래 내용으
 - **`main` 직접 푸시 불가**: 브랜치 → PR → squash 병합. squash 병합 후에는 같은 브랜치 이름을 재사용하지 말고 `origin/main`에서 새 브랜치를 땀(강제 푸시는 차단됨)
 - 보안: 저장소가 공개이므로 사용자 실험 이미지(`real-gel.png`, 붙여넣은 이미지 등)를 커밋하지 말 것. 문서용 그림은 합성 이미지로 만든다
 - **화면 표시 규칙은 한 곳(`render.ts`)에서만 정할 것**. 원본/보정 후를 각자 다른 밝기 범위로 그렸다가 "보정 안 했는데 개선돼 보임", "단계 넘기면 원본으로 돌아감" 오류가 났음(2026-11-27). 보정을 안 하면 두 이미지가 완전히 같아야 하며 `tests/core.test.ts`가 이를 확인함
+- **배경 제거를 켜면 되돌린 값의 배경이 가장 밝은 값(255)이 되어, 원본의 밝기 범위(예: 102~221)로 그리면 배경과 흐린 밴드가 모두 흰색으로 잘려 "배경이 너무 많이 제거된 것 같다"고 보임**. 측정값 문제가 아니라 표시 문제였음(사용자 이미지에서 롤링볼 반경 50·400 모두 배경 ≈ 신호 40~50을 통째로 뺌, 흐린 밴드 진폭 14.7 → 12~15, 되돌린 값의 93~96%가 221 초과). `correctedSource`가 배경 제거 시에만 보정된 값에서 밝기 범위를 다시 잡음
 - **합성 이미지만으로 검증하지 말 것**: 사용자가 실제로 쓰는 사진(예: 4-bit 디더링·8-bit RGB 파워포인트 복사본)으로도 클릭해 보고, 화면 캡처를 눈으로 비교할 것. 축소 표시 때 `image-rendering: pixelated`가 거칠게 보여 "원본처럼 보인다"는 오해를 낳았음(축소 시 `auto`로 수정)
 - Windows PowerShell 5.1의 `Get-Content`/`Set-Content`는 기본 인코딩이 ANSI라 **한글 주석이 깨짐** → 파일 수정은 편집 도구로, 부득이하면 `[System.IO.File]::WriteAllText(path, text, New-Object System.Text.UTF8Encoding $false)`
 
@@ -416,7 +417,7 @@ Densito Assist (<이전 PC 경로>/Densito-assist) is a browser-based gel/wester
 
 ## 12. 새 세션의 첫 체크리스트
 
-1. **설치와 검사**: `npm ci` → `npm run check`. 기대값: 타입 오류 0, 테스트 39개 중 38개 통과(`real-gel.png`가 없으면 1개 skip), 빌드 후 `Densi-assist.html` 갱신 로그. `npm ci`가 실패하면 먼저 `cdn.sheetjs.com` 접근 가능 여부 확인
+1. **설치와 검사**: `npm ci` → `npm run check`. 기대값: 타입 오류 0, 테스트 40개 중 39개 통과(`real-gel.png`가 없으면 1개 skip), 빌드 후 `Densi-assist.html` 갱신 로그. `npm ci`가 실패하면 먼저 `cdn.sheetjs.com` 접근 가능 여부 확인
 2. **개발 서버로 화면 확인**: `npm run dev` → 첫 화면에서 "데모 프로젝트로 둘러보기" → 이미지 3장, 레인·밴드 표시, ① ② ③ 도구 버튼, 결과 탭이 나오는지. (Claude 데스크톱 앱을 쓰면 3장의 `.claude/launch.json`을 다시 만든다)
 3. **단독 실행판 확인**: 탐색기에서 `index.html` 또는 `Densi-assist.html`을 더블클릭(Chrome/Edge) → 이미지 추가 → 레인 검출 (Auto) → 밴드 검출 (Auto)가 되는지
 4. **Git 상태 확인**: 새 컴퓨터에서 저장소로 받았는지(`git status`), 아니면 폴더 복사인지. 이 PC에서는 Git 커밋이 한 번도 없었음. GitHub에 올렸다면 Actions의 CI 통과 여부
