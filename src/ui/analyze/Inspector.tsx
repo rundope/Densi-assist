@@ -97,9 +97,6 @@ function ImageSection({ gel, data }: { gel: Gel; data: ProcessedGel | null }) {
 
   return (
     <>
-      <div className="hint" style={{ marginBottom: 8 }}>
-        {gel.fileName} · {gel.sourceWidth}×{gel.sourceHeight} · {gel.bitDepth}-bit{gel.isRGB ? ' RGB' : ''}
-      </div>
       {warn.map((w) => <div key={w} className="note warn" style={{ marginBottom: 6 }}>{w}</div>)}
       {satCount > 0 && <div className="note warn" style={{ marginBottom: 6 }}>포화 픽셀 {satCount.toLocaleString()}개 — 해당 밴드는 값이 작게 나올 수 있습니다.</div>}
 
@@ -137,7 +134,6 @@ function ImageSection({ gel, data }: { gel: Gel; data: ProcessedGel | null }) {
         help="점무늬·잡음을 줄입니다(가우시안 블러). 측정에도 적용하면 부드러워진 이미지에서 밴드를 읽습니다. 값이 클수록 더 뭉개져 가는 밴드가 퍼질 수 있으니 필요한 만큼만 쓰세요."
         extra={<label className="label-extra" title="켜면 부드럽게 한 이미지에서 측정합니다"><input type="checkbox" checked={d.smoothApply ?? true} onChange={(e) => up((g) => { g.display.smoothApply = e.target.checked; })} />측정에도 적용</label>}
         onChange={(v) => up((g) => { g.display.smooth = v; }, 'smooth')} />
-      <label className="check"><input type="checkbox" checked={d.showCorrected} onChange={(e) => up((g) => { g.display.showCorrected = e.target.checked; })} />배경 제거된 이미지로 보기</label>
     </>
   );
 }
@@ -158,6 +154,7 @@ function BackgroundSection({ gel }: { gel: Gel }) {
             help="가장 두꺼운 밴드보다 크게 잡으세요."
             onChange={(v) => up((g) => { g.background.radius = Math.round(v); }, 'bgRadius')} />
           <label className="check"><input type="checkbox" checked={b.presmooth} onChange={(e) => up((g) => { g.background.presmooth = e.target.checked; })} />잡티 무시 (작은 먼지·노이즈를 먼저 고름)</label>
+          <label className="check" style={{ marginTop: 8 }}><input type="checkbox" checked={gel.display.showCorrected} onChange={(e) => up((g) => { g.display.showCorrected = e.target.checked; })} />배경 제거된 이미지로 보기</label>
         </>
       )}
     </>
