@@ -170,8 +170,9 @@ function LanesSection({ gel, project }: { gel: Gel; project: Project }) {
     <ol className="howto">
       <li>
         <b>레인 잡기</b>
-        <span>자동: <button className="btn sm primary" onClick={() => autoDetectLanes(gel.id)}><Icon name="wand" size={13} />레인 검출 (Auto)</button></span>
         <span>직접: 이미지 위를 <em>끌어서</em> 그리거나, 레인 자리를 <em>클릭</em>하면 같은 크기로 추가됩니다</span>
+        <span>자동: <button className="btn sm primary" onClick={() => autoDetectLanes(gel.id)}><Icon name="wand" size={13} />레인 검출 (Auto)</button></span>
+        <span className="howto-note">자동은 레인을 놓칠 수 있어요. 빠진 레인은 클릭하거나 끌어서 직접 그려 주세요.</span>
       </li>
       <li>
         <b>위치·폭 맞추기</b>

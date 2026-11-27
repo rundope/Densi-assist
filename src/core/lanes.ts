@@ -71,6 +71,9 @@ export function detectLanes(data: Float32Array, w: number, h: number, expected?:
     halfWidths.push(b - a + 1);
     return (a + b) / 2;
   });
+  // 레인은 보통 같은 간격으로 늘어선다. 간격이 평소의 약 2~4배로 벌어진 곳은 옆 레인과 붙어 골짜기가
+  // 안 보여서 놓친 레인일 가능성이 크므로, 등분 위치에 신호가 있으면 레인으로 채운다 (expected를 줬으면 생략)
+  if (!expected) fillGridGaps(centers, halfWidths, s, d);
   halfWidths.sort((a, b) => a - b);
   const medSpan = halfWidths[Math.floor(halfWidths.length / 2)];
   const gaps: number[] = [];
@@ -83,6 +86,47 @@ export function detectLanes(data: Float32Array, w: number, h: number, expected?:
 }
 
 interface Peak { x: number; value: number; prominence: number }
+
+/**
+ * 레인 간격(pitch)이 일정하다는 점을 이용해 빠진 레인을 채운다 (centers, halfWidths를 직접 고침).
+ * - pitch: 이웃 중심 간격의 하위 25% 값 (놓친 레인 때문에 벌어진 간격이 섞여도 흔들리지 않게)
+ * - 간격이 pitch의 k배(k = 2~4, 등분 간격 오차 ±20%)이면 등분 위치마다 ±10% pitch 평균 점수가
+ *   0.12 이상일 때(신호가 있을 때)만 넣는다. 신호가 없는 빈 자리는 넣지 않는다.
+ * - 넣은 레인의 중심은 그 자리 ±50% pitch 안에서 반치 구간의 가운데로 다시 잡는다.
+ */
+export function fillGridGaps(centers: number[], halfWidths: number[], s: Float64Array, d: Float64Array) {
+  if (centers.length < 3) return;
+  const gaps: number[] = [];
+  for (let i = 1; i < centers.length; i++) gaps.push(centers[i] - centers[i - 1]);
+  gaps.sort((a, b) => a - b);
+  const pitch = gaps[Math.floor((gaps.length - 1) / 4)];
+  if (!(pitch > 4)) return;
+  const n = s.length;
+  const added: { c: number; hw: number }[] = [];
+  for (let i = 1; i < centers.length; i++) {
+    const a = centers[i - 1], g = centers[i] - a;
+    const k = Math.round(g / pitch);
+    if (k < 2 || k > 4 || Math.abs(g / k - pitch) > 0.2 * pitch) continue;
+    for (let j = 1; j < k; j++) {
+      const c = Math.round(a + (g * j) / k);
+      const r = Math.max(1, Math.round(0.1 * pitch));
+      let mean = 0, cnt = 0;
+      for (let x = Math.max(0, c - r); x <= Math.min(n - 1, c + r); x++) { mean += s[x]; cnt++; }
+      if (!cnt || mean / cnt < 0.12) continue;
+      const lo = Math.max(0, Math.round(c - pitch / 2)), hi = Math.min(n - 1, Math.round(c + pitch / 2));
+      let m = c;
+      for (let x = lo; x <= hi; x++) if (d[x] > d[m]) m = x;
+      let x0 = m, x1 = m;
+      while (x0 > lo && d[x0 - 1] > d[m] / 2) x0--;
+      while (x1 < hi && d[x1 + 1] > d[m] / 2) x1++;
+      added.push({ c: (x0 + x1) / 2, hw: x1 - x0 + 1 });
+    }
+  }
+  if (!added.length) return;
+  const all = centers.map((c, i) => ({ c, hw: halfWidths[i] })).concat(added).sort((p, q) => p.c - q.c);
+  centers.splice(0, centers.length, ...all.map((p) => p.c));
+  halfWidths.splice(0, halfWidths.length, ...all.map((p) => p.hw));
+}
 
 /** prominence 기반 봉우리 찾기 (평평한 구간에서는 가운데를 봉우리로) */
 function findPeaks(s: Float64Array, minProminence: number, minValue: number, minDistance: number): Peak[] {

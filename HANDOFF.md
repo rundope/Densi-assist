@@ -9,7 +9,7 @@
 
 ## 0. 한 줄 요약
 
-전기영동 겔·웨스턴 블롯 사진에서 밴드 진하기를 정량하는 **브라우저 전용 웹앱**(ImageJ Gel Analyzer 대체). React 19 + TypeScript + Vite. 현재 v0.3.0(이후 기능 추가됨), 테스트 46개(`real-gel.png` 없으면 45 통과 + 1 skip). 설치 없이 쓰는 단독 실행판 `Densi-assist.html`(HTML 파일 하나, 약 1MB)도 빌드로 만들어진다. GitHub 업로드는 끝났고(저장소 `rundope/Densi-assist`, `main`), 저장소는 2026-11-27에 **공개로 전환**했고 Pages Source를 GitHub Actions로 설정해 배포에 성공했다. 실제 주소는 **`https://rundope.github.io/Densi-assist/`**(대소문자 구분. 소문자 `densi-assist`는 404). `main` push 시 자동 배포. 비공개로 되돌리면 무료 요금제에서 Pages가 불가하므로 `Densi-assist.html` 다운로드 방식을 쓴다. 개인 PC 경로는 공개 대비로 일반 표기(`<이전 PC>` 등)로 바꿨다. 홈페이지 탑재는 **준비만 되어 있고 아직 하지 않았다**.
+전기영동 겔·웨스턴 블롯 사진에서 밴드 진하기를 정량하는 **브라우저 전용 웹앱**(ImageJ Gel Analyzer 대체). React 19 + TypeScript + Vite. 현재 v0.3.0(이후 기능 추가됨), 테스트 48개(`real-gel.png` 없으면 47 통과 + 1 skip). 설치 없이 쓰는 단독 실행판 `Densi-assist.html`(HTML 파일 하나, 약 1MB)도 빌드로 만들어진다. GitHub 업로드는 끝났고(저장소 `rundope/Densi-assist`, `main`), 저장소는 2026-11-27에 **공개로 전환**했고 Pages Source를 GitHub Actions로 설정해 배포에 성공했다. 실제 주소는 **`https://rundope.github.io/Densi-assist/`**(대소문자 구분. 소문자 `densi-assist`는 404). `main` push 시 자동 배포. 비공개로 되돌리면 무료 요금제에서 Pages가 불가하므로 `Densi-assist.html` 다운로드 방식을 쓴다. 개인 PC 경로는 공개 대비로 일반 표기(`<이전 PC>` 등)로 바꿨다. 홈페이지 탑재는 **준비만 되어 있고 아직 하지 않았다**.
 
 ---
 
@@ -85,7 +85,7 @@
 | `image/background2d.ts` | `estimateBackground2D` — ImageJ rolling ball(축소·arcTrim·bilinear 확대) / sliding paraboloid 포팅. `ballParams`, `slideParabola`. **`removeBackground`**: 방법 5종(none / rolling-ball / paraboloid / **constant**(신호 낮은 쪽 N% 값 하나 빼기, 0 클램프) / **flatten**(롤링볼 배경을 매끈한 면으로 만든 뒤 평균을 뺀 변동분만 제거)) + **강도(%)**로 일부만 뺌. 워커가 이 함수를 호출 |
 | `profile.ts` | `extractProfile(signal, raw, satLevel, lane, settings, tilt)` — 레인 폭 평균/중앙값, 가장자리 제외 %, **tilt만큼 열마다 세로로 밀어 샘플링**, 좌우 바깥 띠(lane-edge용), 행별 포화 수. `laneColumns` |
 | `baseline/registry.ts` | 베이스라인 정의 `BASELINES`(16종 메타데이터: 설명·주의·파라미터), `VISIBLE_BASELINES`(화면 노출 7종), `computeBaseline`, `cloneSpec`(**immer draft 복사용**), `makeSpec`, `manualBandBaseline`(밴드별 시작·끝점 직선), `rollingBall1D`, `rubberBand`, `snip`, `asls/airpls/arpls/psalsa`, `modpoly`, `scaledLam`(λ를 1000점 기준 환산) |
-| `lanes.ts` | `detectLanes` — 행 하위10% 제거→열 점수→슬라이딩 최솟값으로 비네팅 제거→로그 압축→prominence 봉우리→봉우리 사이 최솟값 경계→반치폭으로 중심·폭→세로 범위 |
+| `lanes.ts` | `detectLanes` — 행 하위10% 제거→열 점수→슬라이딩 최솟값으로 비네팅 제거→로그 압축→prominence 봉우리→봉우리 사이 최솟값 경계→반치폭으로 중심·폭→**`fillGridGaps`(간격이 평소의 2~4배인 곳의 등분 위치에 신호가 있으면 레인 추가)**→세로 범위. 사용자 사진(10레인)에서 8개 → 10개 |
 | `bands.ts` | `detectBands`(평활→prominence→경계), `measureBand`(area=Σ(profile−baseline), volume=area×열 수, 포화 픽셀, 음수 비율) |
 | `math.ts` | 평활, 슬라이딩 min/max/median, `solveWhittaker`(밴드 Cholesky), `polyFit`, `solveDense`, 통계 |
 | `results.ts` | `BandRow` 타입, `summarize`(샘플×타깃 평균·SD, 로딩 컨트롤 정규화(현재 UI에서 null 전달), 기준 샘플 상대값) |
@@ -120,7 +120,7 @@
 | `spoonbill.ts` | 사용자가 준 Spoonbill 로고(흰 배경 투명화, 높이 112px PNG)를 data URI로 넣은 것. 단독 실행판에도 포함되도록 파일이 아니라 코드로 둠 |
 | `analyze/PrepareView.tsx` | ① 이미지 준비 화면: 원본과 보정 후 이미지(= 측정에 쓰이는 이미지, 원본과 같은 모습으로 다시 뒤집어 표시)를 캔버스 두 개로 나란히 표시 |
 | `analyze/ImageView.tsx` | 이미지 캔버스 + SVG 오버레이(레인·밴드·기울기 손잡이), 줌/팬, 모든 드래그 상호작용. 확대하면 **"오른쪽 버튼을 누른 채 끌면 화면 이동" 노란 안내창**(한 번 이동하면 그 창에서는 다시 안 뜸, `sessionStorage`)과 HUD 칩. "원본 이미지 보기"·왼쪽 위 도구 안내창(완료 버튼)은 2026-11-27 제거 |
-| `analyze/ProfilePanel.tsx` | 레인 띠 이미지 + 프로파일 그래프(기울어진 밴드 구간은 기울인 프로파일로 그림), 밴드 시작·끝점 동그라미(수동 모드에서 드래그), 전체 레인 비교, "수동으로 다듬기" |
+| `analyze/ProfilePanel.tsx` | 레인 띠 이미지 + 프로파일 그래프(기울어진 밴드 구간은 기울인 프로파일로 그림), 밴드 시작·끝점 동그라미(수동 모드에서 드래그), **그래프 보기 전환(선택 레인 / 전체 레인 비교)을 파란 테두리로 크게**. 그래프 머리의 밴드 그리기·수동으로 다듬기·밴드 검출 버튼은 2026-11-27 제거(누르면 단계가 바뀌어 혼란) |
 | `analyze/Inspector.tsx` | **왼쪽 패널: 지금 단계(① 이미지 준비 / ② 레인 / ③ 밴드)의 내용만 표시**(접고 펼치는 항목 없음). ① = 밴드 색(큰 라디오 카드)·이미지 보정(컬러→흑백·기울기·감마·부드럽게)·배경 제거를 `Block`으로 통합. ③ = 베이스라인 + 밴드·타깃. 안내 문구(8-bit·JPG·포화)는 패널이 아니라 `PrepareView` 원본 이미지 아래에 표시. 밴드 표(#, 기울기, 면적, %), 표 복사/겔 전체 복사, 타깃 칩 |
 | `results/ResultsView.tsx` | 결과 탭(단순화): 전체 밴드 표, 타깃 지정 시에만 샘플별 요약+막대그래프, 엑셀/CSV/표 복사 |
 | `results/export.ts` | xlsx(시트: 샘플별 요약, 밴드, 설정), CSV(BOM), TSV. 동적 import로 지연 로딩 |
@@ -133,7 +133,7 @@
 ### tests/
 | 파일 | 내용 |
 |---|---|
-| `core.test.ts` | 46개(레인 크기 맞춤 1개, 2D 배경 제거 5개 포함, +화면용 가우시안 블러 3개, 원본/보정 후 표시 일관성 6개): Whittaker 솔버, 베이스라인 면적 회수, 2D 배경, 합성 겔(극성·레인·선형성), 16-bit TIFF, 실제 겔(레인 7개), 밴드 기울기, 수동 바닥선, SHA-256, 표준곡선, 정규화 |
+| `core.test.ts` | 48개(레인 간격 보정 1개, 레인 크기 맞춤 1개, 2D 배경 제거 5개 포함, +화면용 가우시안 블러 3개, 원본/보정 후 표시 일관성 6개): Whittaker 솔버, 베이스라인 면적 회수, 2D 배경, 합성 겔(극성·레인·선형성), 16-bit TIFF, 실제 겔(레인 7개), 밴드 기울기, 수동 바닥선, SHA-256, 표준곡선, 정규화 |
 | `fixtures/gel16.tif` | 합성 16-bit TIFF (저장소 포함) |
 | `fixtures/real-gel.png` | **사용자가 대화에 첨부한 실제 SDS-PAGE 사진**(사다리 + 시료 6레인). gitignore. 없으면 해당 테스트 skip |
 
@@ -157,7 +157,7 @@ npm run check
 
 | 명령 | 결과 |
 |---|---|
-| `npm test` | Vitest 46개 (real-gel.png 없으면 45 통과 + 1 skip) |
+| `npm test` | Vitest 48개 (real-gel.png 없으면 47 통과 + 1 skip) |
 | `npm run build` | `dist/`(웹 배포용, 상대 경로) + `Densi-assist.html`(루트와 `dist/` 양쪽) |
 | `npm run build:standalone` | `Densi-assist.html`만 |
 | `npm run preview` | `dist/` 미리보기 |
@@ -187,7 +187,7 @@ gitignore 대상이라 새 컴퓨터에는 없다. 필요하면 아래 내용으
 - 레인 그리기/클릭 추가, **도구 전환 없이 바로 끌어 이동, 테두리로 상하좌우 크기 조절**(끄는 쪽만 이동, "모든 레인 크기를 같게"면 폭 동기화)
 - 밴드 자동 검출, 그리기(이미지 위아래 / 그래프 좌우), 끌어서 이동, 테두리 조절, Delete 삭제
 - **밴드 기울기**: 양 끝 동그라미 드래그(좌·우 모두) 또는 숫자 입력 → 기울인 프로파일로 면적 재계산, 그래프 검은 선도 변경
-- 베이스라인 7종 선택(겔 전체/레인별), **수동(밴드 시작·끝점)**: 그래프 동그라미 드래그(가로=위치, 세로=높이), 오른쪽 클릭=자동 높이로. "수동으로 다듬기"
+- 베이스라인 7종 선택(겔 전체/레인별), **수동(밴드 시작·끝점)**: 그래프 동그라미 드래그(가로=위치, 세로=높이), 오른쪽 클릭=자동 높이로
 - 2D 배경 제거(rolling ball / paraboloid), 이미지 보정(감마·부드럽게: 슬라이더 옆 "측정에도 적용" 체크, 기본 켜짐. 감마가 1이 아니면 결과·엑셀에 비선형 표시), 이미지 붙여넣기(Ctrl+V·버튼), 화면 구조(이미지 띠 위·패널 왼쪽)·? 도움말
 - 확대·축소·맞춤·1:1, 확대 시 오른쪽 버튼 이동 안내
 - 결과 탭: 전체 밴드 표, 샘플별 요약(타깃 지정 시), 기준 샘플 상대값, 막대그래프, 엑셀/CSV/표 복사
@@ -207,7 +207,7 @@ gitignore 대상이라 새 컴퓨터에는 없다. 필요하면 아래 내용으
 ### 알려진 버그·한계
 - 2D paraboloid의 ImageJ `correctCorners`(모서리 보정) 미포팅 → 모서리 값이 ImageJ와 다를 수 있음
 - Top-hat, 이동 중앙값 베이스라인은 배경 기울기가 급하면 면적을 과소평가(테스트로 확인, 설명 카드에 명시)
-- 수동 베이스라인은 직선 → Rolling ball에서 "수동으로 다듬기"로 바꾸면 면적이 약 5% 달라질 수 있음(실제 겔 레인 4 밴드 2: 4,507 → 4,751)
+- 수동 베이스라인은 직선 → Rolling ball에서 수동으로 바꾸면 면적이 약 5% 달라질 수 있음 ("수동으로 다듬기" 버튼은 제거됨)(실제 겔 레인 4 밴드 2: 4,507 → 4,751)
 - 레인은 세로 직사각형만(곡선 레인 없음). 미세 회전(±10°)만 가능
 - 실제 이미지로 **ImageJ와 수치 대조는 아직 안 함**
 - 용어 혼용: 일부 UI에 "겔"이 남아 있음(예: "겔 전체 복사" 버튼, 그리드의 "모든 겔 자동 분석"). 사용자는 왼쪽 목록을 "이미지"로 바꾸라고만 요청함
@@ -277,6 +277,7 @@ gitignore 대상이라 새 컴퓨터에는 없다. 필요하면 아래 내용으
 | 라벨: "부드럽게 (노이즈 제거)", "감마 (밝기 조절)" | 사용자 요청(부드럽게). 감마 쪽은 밝기 UI를 없애서 | 사용자 / 감마 라벨은 [Claude 판단] |
 | **② 레인 단계 안내**: 왼쪽 패널 제목 크게 + 번호 붙은 할 일 3가지(레인 잡기: Auto 버튼·끌기·클릭 / 위치·폭 / 샘플 이름). Spoonbill 말풍선은 노란 형광 강조, 내용이 바뀌면 한 번 반짝임. 이미지 위 옛 도구 안내창("완료" → ① 이미지 준비로 돌아감) 제거 | 사용자 요구 | 사용자 |
 | **모든 레인 크기를 같게 = 폭·위 끝·아래 끝을 모두 같게**(`syncLaneBoxes`). 켜져 있으면 레인 몸통을 위아래로 옮겨도 모든 레인이 함께 움직임. 켜는 순간 선택 레인에 맞춤 | 버그: 한 레인을 위아래로 옮긴 뒤 테두리를 끌면 끈 쪽 끝만 맞아 높이가 달라짐(사용자 제보) | 사용자 제보 / 해법은 [Claude 판단] |
+| 자동 레인 검출 후 **간격 규칙으로 빠진 레인 채우기**(expected를 주면 생략). 신호 없는 빈 자리는 넣지 않음 | 사용자 사진에서 붙은 레인 2개를 놓침(사용자 요청: 정확도 개선) | 사용자 요청 / 방법은 [Claude 판단] |
 | 배경 제거 "잡티 무시"(presmooth) 기본 끔 (ImageJ는 켬) | 사용자 사진에서 켜면 흐린 밴드 면적이 크게 줄어듦(롤링볼 50: −32.5% vs 끔 −6.9%). 사용자 결정 | 사용자 |
 | 이미지 붙여넣기(Ctrl+V, 붙여넣기 버튼). 글자 붙여넣기는 가로채지 않음. 클립보드 이름 `image.png`는 `붙여넣은 이미지 YYYYMMDD-HHMMSS`로 변경 | 사용자 요청 | 사용자 |
 | 저장소 공개 + GitHub Pages 배포(`https://rundope.github.io/Densi-assist/`, 대소문자 구분) | 사용자가 URL로 바로 쓰기를 원함. 비공개는 무료 요금제에서 Pages 불가 | 사용자 |
@@ -419,6 +420,7 @@ Densito Assist (<이전 PC 경로>/Densito-assist) is a browser-based gel/wester
 | 09-26~27 | 새 PC 이관 | 새 PC(`<새 PC 작업 폴더>`)에서 환경 점검 → Node 설치 → 테스트·개발 서버·단독 실행판·하위 경로 재확인. 폴더를 `Densi-assist`로 바꾸고 이름 통일(`.densi`, `densi-project/1`, 옛 형식 호환 없음) |
 | 09-27 | 배포 준비 2 | 매뉴얼 4개 언어(ko/en/ja/zh-CN), zip 재생성(프로젝트 바깥), `.gitignore`에 `*.zip`, `git init`, 불필요 파일(`dist/`, 프로젝트 안 옛 zip) 삭제 |
 | 11-27 | 클라우드 세션 | `cdn.sheetjs.com` 허용 후 검증 → 저장소 공개 + GitHub Pages 배포(`main` push 자동) → README 주소 → **이미지 붙여넣기**(Ctrl+V·버튼) → **화면 구조 변경**(이미지 띠 위, 패널 왼쪽) → **부드럽게(노이즈 제거)** 추가 → 부드럽게·감마 "측정에도 적용"(기본 켜짐) → ? 도움말 → "화면 밝기" 제거 → 이미지 메뉴 잘림 수정 → 매뉴얼 부드럽게 전/후 그림 |
+| 11-27 | 레인 단계 2 | 할 일 순서 직접→자동, 자동 검출 주의 문구, 말풍선은 레인 수 + 그래프 보기 안내, 그래프 보기 전환 강조, 그래프 머리 옛 버튼 3개 제거, 자동 레인 검출 간격 보정(8→10개) |
 | 11-27 | 레인 단계 | 레인 패널 제목·할 일 3가지, 노란 말풍선, 옛 도구 안내창·원본 이미지 보기 제거, 레인 크기 맞춤 버그 수정, 확대 시 오른쪽 버튼 이동 안내 |
 | 11-27 | 구조 개편 | 목업 승인 → 스텝바(① 이미지 준비 › ② 레인 › ③ 밴드 › ④ 결과, 크고 눈에 띄게, 지금 할 일·다음 버튼) + ① 이미지 준비 화면(원본 vs 측정에 쓰이는 이미지) 구현, 매뉴얼 4개 언어 갱신 |
 
@@ -426,7 +428,7 @@ Densito Assist (<이전 PC 경로>/Densito-assist) is a browser-based gel/wester
 
 ## 12. 새 세션의 첫 체크리스트
 
-1. **설치와 검사**: `npm ci` → `npm run check`. 기대값: 타입 오류 0, 테스트 46개 중 45개 통과(`real-gel.png`가 없으면 1개 skip), 빌드 후 `Densi-assist.html` 갱신 로그. `npm ci`가 실패하면 먼저 `cdn.sheetjs.com` 접근 가능 여부 확인
+1. **설치와 검사**: `npm ci` → `npm run check`. 기대값: 타입 오류 0, 테스트 48개 중 47개 통과(`real-gel.png`가 없으면 1개 skip), 빌드 후 `Densi-assist.html` 갱신 로그. `npm ci`가 실패하면 먼저 `cdn.sheetjs.com` 접근 가능 여부 확인
 2. **개발 서버로 화면 확인**: `npm run dev` → 첫 화면에서 "데모 프로젝트로 둘러보기" → 이미지 3장, 레인·밴드 표시, ① ② ③ 도구 버튼, 결과 탭이 나오는지. (Claude 데스크톱 앱을 쓰면 3장의 `.claude/launch.json`을 다시 만든다)
 3. **단독 실행판 확인**: 탐색기에서 `index.html` 또는 `Densi-assist.html`을 더블클릭(Chrome/Edge) → 이미지 추가 → 레인 검출 (Auto) → 밴드 검출 (Auto)가 되는지
 4. **Git 상태 확인**: 새 컴퓨터에서 저장소로 받았는지(`git status`), 아니면 폴더 복사인지. 이 PC에서는 Git 커밋이 한 번도 없었음. GitHub에 올렸다면 Actions의 CI 통과 여부

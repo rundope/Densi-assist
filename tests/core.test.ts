@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { BASELINES, computeBaseline, makeSpec } from '../src/core/baseline/registry';
 import { detectBands, measureBand } from '../src/core/bands';
+import { fillGridGaps } from '../src/core/lanes';
 import { fitCalibration } from '../src/core/calibration';
 import { differenceGram, solveWhittaker } from '../src/core/math';
 import { estimateBackground2D, removeBackground } from '../src/core/image/background2d';
@@ -461,5 +462,18 @@ describe('모든 레인 크기를 같게 (syncLaneBoxes)', () => {
       expect([l.width, l.top, l.bottom]).toEqual([60, 445, 600]);
     }
     expect(lanes.map((l) => l.cx)).toEqual([100, 200, 300]);
+  });
+});
+
+describe('자동 레인 검출: 간격으로 빠진 레인 채우기 (fillGridGaps)', () => {
+  it('간격이 2배로 벌어진 자리에 신호가 있으면 레인을 넣고, 신호가 없으면 넣지 않는다', () => {
+    const w = 700;
+    const s = new Float64Array(w), d = new Float64Array(w);
+    // 레인 중심 100, 200, 300(놓침), 400, 500(빈 자리), 600
+    for (const c of [100, 200, 300, 400, 600]) for (let x = c - 40; x <= c + 40; x++) { s[x] = 0.8; d[x] = 1 - Math.abs(x - c) / 80; }
+    const centers = [100, 200, 400, 600], hw = [41, 41, 41, 41];
+    fillGridGaps(centers, hw, s, d);
+    expect(centers.map(Math.round)).toEqual([100, 200, 300, 400, 600]);
+    expect(hw.length).toBe(5);
   });
 });
