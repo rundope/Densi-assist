@@ -20,12 +20,8 @@ function Pane({ title, caption, source, dim }: { title: string; caption: string;
   );
 }
 
-/** 측정용 이미지는 밴드가 클수록 큰 값이 되도록 만들므로, 어두운 밴드 이미지는 반전되어 밴드가 하얗게 보인다 */
-function measuredCaption(p: Gel['preprocess']['polarity']) {
-  if (p === 'dark-bands') return '어두운 밴드를 반전해서 계산합니다 · 밴드가 하얗게 보이면 정상';
-  if (p === 'light-bands') return '밝은 밴드를 그대로 계산합니다 · 밴드가 하얗게 보이면 정상';
-  return '광학 밀도(OD)로 변환해서 계산합니다 · 밴드가 하얗게 보이면 정상';
-}
+/** 오른쪽 이미지 설명. 밴드 색은 계산에만 쓰이는 설정이라 화면은 원본과 같은 모습으로 보인다 */
+const AFTER_CAPTION = '감마·부드럽게·배경 제거 등 왼쪽 설정이 반영된 모습 (밴드 색은 계산에만 쓰임)';
 
 /**
  * ① 이미지 준비 단계의 화면. 올린 그대로의 이미지와, 실제 측정에 쓰이는 이미지를 나란히 보여준다.
@@ -36,11 +32,12 @@ export function PrepareView({ gel, data, status }: { gel: Gel; data: ProcessedGe
   const original: RenderSource | null = data
     ? { width: data.width, height: data.height, values: data.raw, min: d.min, max: d.max > d.min ? d.max : d.min + 1, gamma: 1, invert: false }
     : null;
-  // data.signal은 극성·감마·부드럽게·배경 제거가 이미 반영된 측정용 값이다 (밴드가 클수록 큰 값)
+  // data.signal은 극성·감마·부드럽게·배경 제거가 이미 반영된 측정용 값이다 (밴드가 클수록 큰 값).
+  // 보기에 헷갈리지 않도록 원본과 같은 모습(어두운 밴드는 어둡게)으로 다시 뒤집어서 그린다.
   const measured: RenderSource | null = data
     ? (() => {
         const [lo, hi] = data.signalRange;
-        return { width: data.width, height: data.height, values: data.signal, min: Math.min(lo, 0), max: hi > lo ? hi : lo + 1, gamma: 1, invert: false };
+        return { width: data.width, height: data.height, values: data.signal, min: Math.min(lo, 0), max: hi > lo ? hi : lo + 1, gamma: 1, invert: gel.preprocess.polarity !== 'light-bands' };
       })()
     : null;
 
@@ -53,7 +50,7 @@ export function PrepareView({ gel, data, status }: { gel: Gel; data: ProcessedGe
           <div className="prep-pair">
             <Pane title="원본" caption="올린 그대로 (화면 밝기만 자동 조절)" source={original} />
             <div className="prep-arrow" aria-hidden>→</div>
-            <Pane title="측정에 쓰이는 이미지" caption={measuredCaption(gel.preprocess.polarity)} source={measured} />
+            <Pane title="보정 후 (측정에 쓰이는 이미지)" caption={AFTER_CAPTION} source={measured} />
           </div>
           <div className="prep-foot">
             {gel.fileName} · {data.width}×{data.height} · {gel.bitDepth}-bit{gel.isRGB ? ' RGB' : ''} — 오른쪽 이미지가 ② 레인, ③ 밴드, ④ 결과의 모든 계산에 쓰입니다.
