@@ -142,6 +142,21 @@ export async function autoDetectLanes(gelId: string, expected?: number) {
   app().toast({ kind: 'success', text: `레인 ${guesses.length}개를 찾았습니다. 위치가 어긋나면 드래그로 조정하세요.`, action: { label: '되돌리기', run: () => app().undo() } });
 }
 
+/** 이 이미지의 레인(과 그 안의 밴드)을 모두 지운다. 실행 취소로 되돌릴 수 있게 알림에 되돌리기 버튼을 단다 */
+export function clearLanes(gelId: string) {
+  const gel = app().project.gels.find((g) => g.id === gelId);
+  if (!gel || !gel.lanes.length) return;
+  const n = gel.lanes.length;
+  const bands = gel.lanes.reduce((s, l) => s + l.bands.length, 0);
+  app().update((d) => {
+    const g = findGel(d, gelId);
+    if (g) g.lanes = [];
+    for (const c of d.calibrations) c.rows = c.rows.filter((r) => r.source.kind !== 'band' || r.source.gelId !== gelId);
+  });
+  app().setUi({ selectedLaneId: null, selectedBandId: null });
+  app().toast({ kind: 'info', text: `레인 ${n}개${bands ? `와 밴드 ${bands}개` : ''}를 모두 지웠습니다.`, action: { label: '되돌리기', run: () => app().undo() } }, 8000);
+}
+
 /** 밴드 검출. valley처럼 밴드에 의존하는 베이스라인은 검출 단계에서 rubber band로 대신한다 */
 export function detectBandsForLane(gel: Gel, lane: Lane, project: Project): Band[] {
   const st = engine.status(gel.id);
