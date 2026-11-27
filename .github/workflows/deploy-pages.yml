@@ -1,11 +1,10 @@
-# GitHub Pages로 배포 (main에 push되면 자동, 수동 실행도 가능)
+# GitHub Pages로 배포 (수동 실행 전용)
+# 비공개 저장소는 무료 요금제에서 Pages 불가 → 공개/유료 전환 후에만 사용
 # 사용 전: 저장소 Settings → Pages → Source를 "GitHub Actions"로 설정
 # 주소: https://<계정>.github.io/<저장소 이름>/
 name: Deploy to GitHub Pages
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:

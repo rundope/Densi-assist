@@ -9,7 +9,7 @@
 
 ## 0. 한 줄 요약
 
-전기영동 겔·웨스턴 블롯 사진에서 밴드 진하기를 정량하는 **브라우저 전용 웹앱**(ImageJ Gel Analyzer 대체). React 19 + TypeScript + Vite. 현재 v0.3.0, 테스트 31개 통과. 설치 없이 쓰는 단독 실행판 `Densi-assist.html`(HTML 파일 하나, 약 1MB)도 빌드로 만들어진다. GitHub 업로드는 끝났고(저장소 `rundope/Densi-assist`, `main`), `main` push 시 GitHub Pages 자동 배포 워크플로가 있다(2026-11-27 PR #1). 주소는 `https://rundope.github.io/densi-assist/` 예정이나, Settings → Pages → Source를 GitHub Actions로 바꾸기 전에는 deploy 단계가 실패한다(2026-11-27 첫 실행에서 build 성공·deploy 실패 확인). 홈페이지 탑재는 **준비만 되어 있고 아직 하지 않았다**.
+전기영동 겔·웨스턴 블롯 사진에서 밴드 진하기를 정량하는 **브라우저 전용 웹앱**(ImageJ Gel Analyzer 대체). React 19 + TypeScript + Vite. 현재 v0.3.0, 테스트 31개 통과. 설치 없이 쓰는 단독 실행판 `Densi-assist.html`(HTML 파일 하나, 약 1MB)도 빌드로 만들어진다. GitHub 업로드는 끝났고(저장소 `rundope/Densi-assist`, `main`), 저장소가 **비공개라 무료 요금제에서는 GitHub Pages 불가**(2026-11-27 Settings→Pages 화면에서 "Upgrade or make this repository public" 확인). 그래서 사용자는 저장소의 `Densi-assist.html`을 다운로드해 더블클릭으로 쓴다(README "바로 사용하기"). Pages 워크플로는 수동 실행 전용으로 되돌렸다. 홈페이지 탑재는 **준비만 되어 있고 아직 하지 않았다**.
 
 ---
 
@@ -269,7 +269,7 @@ gitignore 대상이라 새 컴퓨터에는 없다. 필요하면 아래 내용으
 
 ## 6. 사용자가 요구했지만 아직 안 된 것
 
-- **GitHub 업로드**: 완료(2026-11-27 기준 저장소 `rundope/Densi-assist`에 `main` 존재, CI 통과). 남은 것은 Pages Source 설정(위 0장). 이전 기록: 새 PC(2026-09-27)에서 `git init`까지 했고 사용자는 Claude 앱 내장 브라우저에 GitHub 계정(rundope)으로 로그인해 둠(방법은 `docs/DEPLOY.md`)
+- **GitHub 업로드**: 완료(2026-11-27 기준 저장소 `rundope/Densi-assist`에 `main` 존재, CI 통과). Pages는 비공개 저장소 제약으로 보류(위 0장). 공개 전환 여부는 7장 5번과 묶인 미결. 이전 기록: 새 PC(2026-09-27)에서 `git init`까지 했고 사용자는 Claude 앱 내장 브라우저에 GitHub 계정(rundope)으로 로그인해 둠(방법은 `docs/DEPLOY.md`)
 - **홈페이지 탑재**: 빌드·가이드(iframe 예시 포함)만 준비. 실제 탑재 안 함. 홈페이지 주소·경로·HTTPS 여부 모름
 - 사용자가 "매뉴얼 작성할 때 … 순서로 처리한다는 것을 알려주면 좋겠다"고 한 것은 `docs/USER_MANUAL.ko.md`(및 영어·일본어·중국어 간체판)에 반영했으나, **스크린샷은 없음**
 - 그 밖에 사용자가 명시적으로 요구했는데 누락된 기능은 확인되지 않음(확실하지 않은 부분은 7장)

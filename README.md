@@ -64,7 +64,14 @@ npm run dev
 
 ## 바로 사용하기
 
-설치 없이 브라우저에서: **https://rundope.github.io/densi-assist/** (GitHub Pages, `main`에 push되면 자동 갱신됨. 처음 한 번 저장소 Settings → Pages → Source를 GitHub Actions로 설정해야 함)
+설치 없이, 파일 하나로 실행합니다. (저장소가 비공개라 무료 요금제에서는 GitHub Pages URL을 쓸 수 없습니다.)
+
+1. 저장소 첫 화면에서 **[`Densi-assist.html`](Densi-assist.html)** 을 클릭
+2. 파일 화면 오른쪽 위의 **다운로드 아이콘(Download raw file)** 클릭 (화면에서 바로 열면 코드 글자만 보이니 꼭 다운로드)
+3. 받은 파일을 **더블클릭** → Chrome 또는 Edge에서 앱이 열림
+4. 이미지를 끌어다 놓거나 "데모 프로젝트로 둘러보기"로 시작
+
+새 버전이 나오면 같은 방법으로 다시 받으면 됩니다. 인터넷 연결 없이도 동작하며 이미지는 PC 밖으로 나가지 않습니다.
 
 ## 배포
 
