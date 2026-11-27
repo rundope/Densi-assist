@@ -53,6 +53,15 @@ export async function pasteFromClipboard() {
   }
 }
 
+/** 채널이 여러 개여도 R·G·B 값이 모두 같으면(흑백을 RGB로 저장한 이미지) 컬러가 아니다 */
+function hasColor(ch: ArrayLike<number>[]): boolean {
+  if (ch.length < 3) return false;
+  const [r, g, b] = ch;
+  const step = Math.max(1, Math.floor(r.length / 50000));
+  for (let i = 0; i < r.length; i += step) if (r[i] !== g[i] || r[i] !== b[i]) return true;
+  return false;
+}
+
 export async function addImageFiles(files: File[]) {
   const imgs = files.filter((f) => ACCEPT.test(f.name) || f.type.startsWith('image/'));
   if (!imgs.length) {
@@ -78,7 +87,7 @@ export async function addImageFiles(files: File[]) {
         sourceWidth: img.width,
         sourceHeight: img.height,
         bitDepth: img.bitDepth,
-        isRGB: img.channels.length > 1,
+        isRGB: hasColor(img.channels),
         lossy: img.lossy,
       });
       gel.preprocess.polarity = suggestPolarity(gray);
