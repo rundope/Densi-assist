@@ -64,7 +64,7 @@ git push -u origin main
 
 ### 방법 C. 인터넷이 되는 다른 PC로 옮겨서 올리기
 
-프로젝트 폴더 바깥(`E:\Claude\Densi-assist.zip`)에 저장소에 들어갈 파일만 묶어 두었습니다. 이 파일을 옮겨 압축을 풀면 `Densi-assist/` 폴더가 생기고, 그 폴더를 방법 A나 B로 올리면 됩니다. (실험 이미지와 `node_modules`는 들어 있지 않습니다.)
+프로젝트 폴더 바깥(`<작업 폴더>/Densi-assist.zip`)에 저장소에 들어갈 파일만 묶어 두었습니다. 이 파일을 옮겨 압축을 풀면 `Densi-assist/` 폴더가 생기고, 그 폴더를 방법 A나 B로 올리면 됩니다. (실험 이미지와 `node_modules`는 들어 있지 않습니다.)
 
 > GitHub 웹의 "Add file → Upload files"로도 올릴 수 있지만, 폴더 구조와 `.github` 같은 숨김 폴더가 빠지기 쉬워 권장하지 않습니다.
 
@@ -131,12 +131,12 @@ BASE_PATH=/tools/densi-assist/ npm run build
 
 ### 3-4. GitHub Pages로 바로 띄우기 (선택)
 
-> 현재 저장소는 비공개라 무료 요금제에서 Pages를 켤 수 없어(2026-11-27 확인), 자동 배포는 꺼 두었습니다(수동 실행만). 저장소를 공개하거나 유료 요금제로 바꾸면 아래 절차를 쓸 수 있습니다. 지금은 3-5의 단독 실행판을 쓰세요.
+> 현재 저장소는 비공개라 무료 요금제에서 Pages를 켤 수 없어(2026-11-27 확인), 자동 배포(`main` push 시)는 켜 두었으나 비공개인 동안은 실패합니다. 저장소를 공개하거나 유료 요금제로 바꾸면 아래 절차로 동작합니다. 그 전에는 3-5의 단독 실행판을 쓰세요.
 
 사내 테스트용으로 GitHub Pages를 쓸 수도 있습니다.
 
 1. 저장소 **Settings → Pages → Source: GitHub Actions** (처음 한 번만)
-2. **Actions → Deploy to GitHub Pages → Run workflow** (자동 배포를 원하면 `deploy-pages.yml`의 `on:`에 `push: branches: [main]` 추가)
+2. `main`에 push하면 자동 배포됨. 수동으로 하려면 **Actions → Deploy to GitHub Pages → Run workflow**
 3. 완료되면 `https://<조직또는계정>.github.io/densi-assist/` 에서 열립니다.
 
 > 비공개 저장소의 Pages는 GitHub 유료 요금제가 필요하고, 조직 설정에 따라 막혀 있을 수 있습니다.

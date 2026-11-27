@@ -9,7 +9,7 @@
 
 ## 0. 한 줄 요약
 
-전기영동 겔·웨스턴 블롯 사진에서 밴드 진하기를 정량하는 **브라우저 전용 웹앱**(ImageJ Gel Analyzer 대체). React 19 + TypeScript + Vite. 현재 v0.3.0, 테스트 31개 통과. 설치 없이 쓰는 단독 실행판 `Densi-assist.html`(HTML 파일 하나, 약 1MB)도 빌드로 만들어진다. GitHub 업로드는 끝났고(저장소 `rundope/Densi-assist`, `main`), 저장소가 **비공개라 무료 요금제에서는 GitHub Pages 불가**(2026-11-27 Settings→Pages 화면에서 "Upgrade or make this repository public" 확인). 그래서 사용자는 저장소의 `Densi-assist.html`을 다운로드해 더블클릭으로 쓴다(README "바로 사용하기"). Pages 워크플로는 수동 실행 전용으로 되돌렸다. 홈페이지 탑재는 **준비만 되어 있고 아직 하지 않았다**.
+전기영동 겔·웨스턴 블롯 사진에서 밴드 진하기를 정량하는 **브라우저 전용 웹앱**(ImageJ Gel Analyzer 대체). React 19 + TypeScript + Vite. 현재 v0.3.0, 테스트 31개 통과. 설치 없이 쓰는 단독 실행판 `Densi-assist.html`(HTML 파일 하나, 약 1MB)도 빌드로 만들어진다. GitHub 업로드는 끝났고(저장소 `rundope/Densi-assist`, `main`), 저장소가 **비공개라 무료 요금제에서는 GitHub Pages 불가**(2026-11-27 Settings→Pages 화면에서 "Upgrade or make this repository public" 확인). 그래서 사용자는 저장소의 `Densi-assist.html`을 다운로드해 더블클릭으로 쓴다(README "바로 사용하기"). 공개 전환에 대비해 Pages 워크플로는 `main` push 시 자동 배포로 다시 켜 두었다(비공개인 동안은 deploy 단계가 실패하는 것이 정상). 개인 PC 경로는 공개 대비로 일반 표기(`<이전 PC>` 등)로 바꿨다. 홈페이지 탑재는 **준비만 되어 있고 아직 하지 않았다**.
 
 ---
 
@@ -306,18 +306,18 @@ gitignore 대상이라 새 컴퓨터에는 없다. 필요하면 아래 내용으
 
 | 항목 | 이 컴퓨터 값 | 다른 컴퓨터에서 |
 |---|---|---|
-| 프로젝트 경로 | `F:\RD\idea\Densito-assist` (폴더명은 옛 이름 "Densito", 앱 이름은 "Densi-assist"). 새 PC에서는 `E:\Claude\Densi-assist`로 폴더 이름도 바꿈(2026-09-27) | 코드에는 절대 경로 없음. `docs/DEPLOY.md`의 zip 경로는 새 PC 기준(`E:\Claude\…`)으로 고침 |
+| 프로젝트 경로 | `<이전 PC 경로>/Densito-assist` (폴더명은 옛 이름 "Densito", 앱 이름은 "Densi-assist"). 새 PC에서는 `<새 PC>/Densi-assist`로 폴더 이름도 바꿈(2026-09-27) | 코드에는 절대 경로 없음. `docs/DEPLOY.md`의 zip 경로는 새 PC 기준(`<새 PC 작업 폴더>\…`)으로 고침 |
 | OS / 셸 | Windows 11, PowerShell 5.1 | 한글 인코딩 함정 주의(4장) |
 | Node / npm | v24.15.0 / 11.12.1 (새 PC: v24.21.0 / 11.19.0) | `.nvmrc`는 22, `engines`는 ≥20.19. Vite 8은 Node 20.19+ 필요. 새 PC에서는 Claude 앱을 켠 뒤 Node를 설치해서 앱을 다시 시작해야 미리보기(`launch.json`)가 `npm`을 찾음 |
 | TypeScript / Vite / Vitest | 7.0.2(네이티브) / 8.3 / 5.0 — 매우 최신 | `tsc -b` 대신 `tsc --noEmit -p .` 사용(스크립트에 반영됨) |
 | Git | **설치 안 됨** (새 PC: Git 2.55 설치됨, `git init -b main` 완료, 커밋 없음) | Claude Code의 Bash 도구는 Git Bash로 동작 |
 | xlsx 설치 주소 | `https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz` | 방화벽에 막히면 `npm ci` 실패 |
 | `.claude/launch.json` | 있음 | gitignore → 새로 만들어야 함(3장에 내용) |
-| `tests/fixtures/real-gel.png` | 있음(사용자 첨부 실제 이미지) | gitignore·zip 제외 → 없으면 테스트 1개 skip. 원본은 이전 대화 첨부 파일 `C:\Users\user\AppData\Local\Temp\claude\F--RD-idea-Densito-assist\3c01a325-6a5f-4ad0-8772-0577523ce83c\images\1.png` (임시 폴더라 사라질 수 있음). 회사 실험 데이터이므로 외부 저장소에 올리지 말 것 |
-| 옮기기용 zip | `F:\RD\idea\densi-assist-source-0.3.0.zip` (새 PC: `E:\Claude\Densi-assist.zip`, 2026-09-27 다시 만듦. 같은 폴더의 `Densito-assist.zip`은 사용자가 옮겨 올 때 만든 옛 전체 압축본). 프로젝트 **바깥**에 둠(`*.zip`은 gitignore). 내용 = Git에 올라갈 파일과 같음(`HANDOFF.md`, `CLAUDE.md` 포함). `node_modules`, `dist`, `.claude/`, `real-gel.png`는 제외 | 압축을 풀면 `Densi-assist/` 폴더가 생김 → 그 안에서 `npm ci`. 이후 코드를 고치면 zip은 낡으므로 폴더를 옮기거나 다시 만들 것 |
-| headless 검증 스크립트 | `C:\Users\user\AppData\Local\Temp\claude\F--RD-idea-Densito-assist\3c01a325-6a5f-4ad0-8772-0577523ce83c\scratchpad\filetest.mjs` (임시 폴더, **이관 안 됨**) | 방법: `msedge.exe`/`chrome.exe`를 `--headless=new --remote-debugging-port=<포트> --user-data-dir=<임시>`로 `file:///…/index.html`을 열고, Node 내장 `WebSocket`으로 CDP(`Runtime.evaluate`)에 접속해 `window`에 `DragEvent('drop')`로 `gel16.tif`를 넣은 뒤 `.step-tool`/`.subtools` 버튼 클릭 → `.gel-item .meta`가 "6 레인 12 밴드", 결과 표 12행인지 확인 |
+| `tests/fixtures/real-gel.png` | 있음(사용자 첨부 실제 이미지) | gitignore·zip 제외 → 없으면 테스트 1개 skip. 원본은 이전 대화 첨부 파일 `<이전 PC 임시 폴더>/images/1.png` (임시 폴더라 사라질 수 있음). 회사 실험 데이터이므로 외부 저장소에 올리지 말 것 |
+| 옮기기용 zip | `<이전 PC>/densi-assist-source-0.3.0.zip` (새 PC: `<새 PC>/Densi-assist.zip`, 2026-09-27 다시 만듦. 같은 폴더의 `Densito-assist.zip`은 사용자가 옮겨 올 때 만든 옛 전체 압축본). 프로젝트 **바깥**에 둠(`*.zip`은 gitignore). 내용 = Git에 올라갈 파일과 같음(`HANDOFF.md`, `CLAUDE.md` 포함). `node_modules`, `dist`, `.claude/`, `real-gel.png`는 제외 | 압축을 풀면 `Densi-assist/` 폴더가 생김 → 그 안에서 `npm ci`. 이후 코드를 고치면 zip은 낡으므로 폴더를 옮기거나 다시 만들 것 |
+| headless 검증 스크립트 | `<이전 PC 임시 폴더>/scratchpad/filetest.mjs` (임시 폴더, **이관 안 됨**) | 방법: `msedge.exe`/`chrome.exe`를 `--headless=new --remote-debugging-port=<포트> --user-data-dir=<임시>`로 `file:///…/index.html`을 열고, Node 내장 `WebSocket`으로 CDP(`Runtime.evaluate`)에 접속해 `window`에 `DragEvent('drop')`로 `gel16.tif`를 넣은 뒤 `.step-tool`/`.subtools` 버튼 클릭 → `.gel-item .meta`가 "6 레인 12 밴드", 결과 표 12행인지 확인 |
 | 브라우저 경로(이 PC) | Edge `C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe`, Chrome `C:\Program Files\Google\Chrome\Application\chrome.exe` (새 PC: Edge만 있음, Chrome 없음) | 다름 |
-| auto memory | `C:\Users\user\.claude\projects\F--RD-idea-Densito-assist\memory\` (새 PC: `C:\Users\MSI\.claude\projects\E--Claude-Densi-assist\memory\`, 아직 비어 있음) | 폴더를 옮기면 사라짐 → 10장 |
+| auto memory | `<이전 PC>/.claude/projects/<프로젝트>/memory/` (새 PC: `<새 PC>/.claude/projects/<프로젝트>/memory/`, 아직 비어 있음) | 폴더를 옮기면 사라짐 → 10장 |
 | Claude 데스크톱 앱 전용 도구 | 미리보기 브라우저 패널(`preview_start` 등) 사용 | 다른 환경에서는 없을 수 있음. 브라우저 패널은 `file://`을 정적 스냅샷으로만 보여 줘서 단독 실행판 검증에 못 씀 → headless 방식 사용 |
 | IndexedDB 자동 저장 데이터 | 이 PC 브라우저에 테스트 프로젝트("새 프로젝트", 실제 겔 1장)가 남아 있음 | 옮겨지지 않음(필요하면 앱에서 `.densi`로 저장해 옮김) |
 
@@ -325,7 +325,7 @@ gitignore 대상이라 새 컴퓨터에는 없다. 필요하면 아래 내용으
 
 ## 10. auto memory 이관 (이전 세션이 저장한 메모리 전체)
 
-위치: `C:\Users\user\.claude\projects\F--RD-idea-Densito-assist\memory\` — 파일 2개.
+위치: `<이전 PC>/.claude/projects/<프로젝트>/memory/` — 파일 2개.
 
 **`MEMORY.md`**
 ```
@@ -344,7 +344,7 @@ metadata:
   modified: 2026-09-17T08:51:26.930Z
 ---
 
-Densito Assist (F:\RD\idea\Densito-assist) is a browser-based gel/western blot densitometry web app (ImageJ Gel Analyzer alternative), Korean UI. v0.1 built 2026-09-17: React+TS+Vite, 16 baseline methods, ImageJ rolling-ball port, multi-gel projects, calibration curves, xlsx export.
+Densito Assist (<이전 PC 경로>/Densito-assist) is a browser-based gel/western blot densitometry web app (ImageJ Gel Analyzer alternative), Korean UI. v0.1 built 2026-09-17: React+TS+Vite, 16 baseline methods, ImageJ rolling-ball port, multi-gel projects, calibration curves, xlsx export.
 
 **Why:** The user wants consistent, user-controllable quantification (baseline choice, gamma/background control) and to measure many gels from one project in one window, plus optional calibration curves from concentration series — without these extras getting in the way of measuring.
 
@@ -383,7 +383,7 @@ Densito Assist (F:\RD\idea\Densito-assist) is a browser-based gel/western blot d
 | 09-21 | 단독 실행판 | "index.html 열면 쓸 수 있게" → `Densi-assist.html`(file://에서 모듈 워커 차단 문제 해결), Edge·Chrome headless 검증 |
 | 09-21 | 정리 | 폴더 정리(dist·중간 산출물 삭제, 설정 파일 통합, `.editorconfig` 삭제, zip을 프로젝트 밖으로) |
 | 09-26 | 인수인계 | 이 문서와 `CLAUDE.md` 작성 |
-| 09-26~27 | 새 PC 이관 | 새 PC(`E:\Claude`)에서 환경 점검 → Node 설치 → 테스트·개발 서버·단독 실행판·하위 경로 재확인. 폴더를 `Densi-assist`로 바꾸고 이름 통일(`.densi`, `densi-project/1`, 옛 형식 호환 없음) |
+| 09-26~27 | 새 PC 이관 | 새 PC(`<새 PC 작업 폴더>`)에서 환경 점검 → Node 설치 → 테스트·개발 서버·단독 실행판·하위 경로 재확인. 폴더를 `Densi-assist`로 바꾸고 이름 통일(`.densi`, `densi-project/1`, 옛 형식 호환 없음) |
 | 09-27 | 배포 준비 2 | 매뉴얼 4개 언어(ko/en/ja/zh-CN), zip 재생성(프로젝트 바깥), `.gitignore`에 `*.zip`, `git init`, 불필요 파일(`dist/`, 프로젝트 안 옛 zip) 삭제 |
 
 ---
