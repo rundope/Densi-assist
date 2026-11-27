@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { createDemoProject, addImageFiles } from '../state/actions';
+import { createDemoProject, addImageFiles, nameClipboardFiles, pasteFromClipboard } from '../state/actions';
 import { deleteStoredProject, exportProjectFile, importProjectFile, listProjects, loadStoredProject, type ProjectIndexEntry } from '../state/persist';
 import { newProject } from '../state/project';
 import { findGel, useApp } from '../state/store';
@@ -42,13 +42,7 @@ export function App() {
       }
       if (!files.length) return; // 글자 붙여넣기는 건드리지 않음
       e.preventDefault();
-      const stamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '-');
-      const named = files.map((f, i) => {
-        // 클립보드 이미지는 이름이 "image.png"로 고정되어 있어 구분되는 이름을 붙임
-        if (f.name && f.name.toLowerCase() !== 'image.png') return f;
-        const ext = f.type === 'image/jpeg' ? 'jpg' : f.type === 'image/bmp' ? 'bmp' : 'png';
-        return new File([f], `붙여넣은 이미지 ${stamp}${files.length > 1 ? `-${i + 1}` : ''}.${ext}`, { type: f.type });
-      });
+      const named = nameClipboardFiles(files);
       addImageFiles(named);
     };
     window.addEventListener('paste', paste);
@@ -123,6 +117,7 @@ function Header() {
         {(close) => (
           <>
             <button onClick={async () => { close(); addImageFiles(await pickFiles(IMAGE_ACCEPT, true)); }}><Icon name="plus" size={15} />이미지 추가…</button>
+            <button onClick={() => { close(); pasteFromClipboard(); }}><Icon name="clipboard" size={15} />복사한 이미지 붙여넣기 (Ctrl+V)</button>
             <hr />
             <button onClick={() => { close(); loadProject(newProject()); }}><Icon name="plus" size={15} />새 프로젝트</button>
             <button onClick={() => { close(); setOpenList(true); }}><Icon name="folder" size={15} />저장된 프로젝트 열기…</button>
@@ -232,7 +227,18 @@ function EmptyState() {
           onDragEnter={() => setOver(true)} onDragLeave={() => setOver(false)} onDrop={() => setOver(false)}>
           <Icon name="upload" size={32} />
           <h2>이미지를 끌어다 놓거나, 클릭해 선택하거나, Ctrl+V로 붙여넣기</h2>
-          <div className="hint">TIFF (8/16/32-bit, 멀티페이지), PNG (16-bit 포함), JPG · 여러 장 동시에 가능 · 복사한 이미지(화면 캡처 등)도 붙여넣을 수 있음</div>
+          <div className="hint">TIFF (8/16/32-bit, 멀티페이지), PNG (16-bit 포함), JPG · 여러 장 동시에 가능</div>
+          <button className="btn primary" onClick={(e) => { e.stopPropagation(); pasteFromClipboard(); }}>
+            <Icon name="clipboard" size={15} />복사한 이미지 붙여넣기
+          </button>
+          <div className="paste-guide" onClick={(e) => e.stopPropagation()}>
+            <b>붙여넣기 사용법</b>
+            <ol>
+              <li>화면 캡처를 하거나 이미지를 복사합니다 (이미지 위에서 우클릭 → 이미지 복사, 또는 Ctrl+C).</li>
+              <li>이 창의 아무 곳에서나 <b>Ctrl+V</b>(맥은 ⌘+V)를 누릅니다. 마우스를 어디에 두어도 됩니다.</li>
+              <li>키보드를 쓰기 싫으면 위의 <b>복사한 이미지 붙여넣기</b> 버튼을 누릅니다. 브라우저가 클립보드 접근을 물으면 "허용"을 누르세요.</li>
+            </ol>
+          </div>
         </div>
         <div className="btn-row" style={{ justifyContent: 'center' }}>
           <button className="btn" onClick={() => createDemoProject()}><Icon name="sparkle" size={15} />데모 프로젝트로 둘러보기</button>

@@ -15,6 +15,44 @@ const app = () => useApp.getState();
 
 const ACCEPT = /\.(tiff?|png|jpe?g|bmp|webp|gif)$/i;
 
+/** 클립보드 이미지는 이름이 "image.png"로 고정되어 있어, 구분되는 이름을 붙인다. */
+export function nameClipboardFiles(files: File[]): File[] {
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '-');
+  return files.map((f, i) => {
+    if (f.name && f.name.toLowerCase() !== 'image.png') return f;
+    const ext = f.type === 'image/jpeg' ? 'jpg' : f.type === 'image/bmp' ? 'bmp' : 'png';
+    return new File([f], `붙여넣은 이미지 ${stamp}${files.length > 1 ? `-${i + 1}` : ''}.${ext}`, { type: f.type });
+  });
+}
+
+const PASTE_KEY_HINT = '이미지를 복사한 뒤 이 창에서 Ctrl+V(맥은 ⌘+V)를 눌러 주세요.';
+
+/** 버튼으로 클립보드의 이미지를 붙여넣는다. 브라우저가 지원하지 않거나 권한이 없으면 Ctrl+V 안내를 띄운다. */
+export async function pasteFromClipboard() {
+  if (!navigator.clipboard?.read || !window.isSecureContext) {
+    app().toast({ kind: 'info', text: `이 환경에서는 버튼 붙여넣기를 쓸 수 없습니다. ${PASTE_KEY_HINT}` }, 7000);
+    return;
+  }
+  try {
+    const items = await navigator.clipboard.read();
+    const files: File[] = [];
+    for (const item of items) {
+      const type = item.types.find((t) => t.startsWith('image/'));
+      if (!type) continue;
+      const blob = await item.getType(type);
+      files.push(new File([blob], 'image.png', { type }));
+    }
+    if (!files.length) {
+      app().toast({ kind: 'warn', text: '클립보드에 이미지가 없습니다. 먼저 이미지를 복사하거나 화면을 캡처한 뒤 다시 눌러 주세요.' }, 7000);
+      return;
+    }
+    await addImageFiles(nameClipboardFiles(files));
+  } catch (e) {
+    console.error(e);
+    app().toast({ kind: 'warn', text: `클립보드를 읽지 못했습니다(권한이 거부되었을 수 있음). ${PASTE_KEY_HINT}` }, 8000);
+  }
+}
+
 export async function addImageFiles(files: File[]) {
   const imgs = files.filter((f) => ACCEPT.test(f.name) || f.type.startsWith('image/'));
   if (!imgs.length) {

@@ -338,3 +338,7 @@ table.tbl { border-collapse: collapse; width: 100%; font-size: 12px; }
   .cal-layout { grid-template-columns: 1fr; }
   .main { overflow: auto; }
 }
+
+/* ---------- 붙여넣기 안내 ---------- */
+.paste-guide { margin-top: 6px; text-align: left; font-size: 12.5px; color: var(--text-2); cursor: default; max-width: 520px; }
+.paste-guide ol { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 2px; }
