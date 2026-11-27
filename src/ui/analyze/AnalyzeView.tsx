@@ -131,19 +131,21 @@ function GelSidebar() {
             <div key={g.id} className={`gel-item ${g.id === activeId && !gridView ? 'active' : ''}`}
               onClick={() => setUi({ activeGelId: g.id, selectedLaneId: g.lanes[0]?.id ?? null, selectedBandId: null, gridView: false })}>
               <GelThumb gel={g} />
-              {renaming === g.id ? (
-                <input type="text" autoFocus defaultValue={g.name} onClick={(e) => e.stopPropagation()}
-                  onBlur={(e) => { update((d) => { const x = findGel(d, g.id); if (x) x.name = e.target.value || x.name; }); setRenaming(null); }}
-                  onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); if (e.key === 'Escape') setRenaming(null); }} />
-              ) : (
-                <div className="name" title={g.name} onDoubleClick={(e) => { e.stopPropagation(); setRenaming(g.id); }}>{g.name}</div>
-              )}
-              <div className="meta">
-                <span className="badge">{g.lanes.length} 레인</span>
-                <span className={`badge ${bands && assigned === bands ? 'ok' : bands ? 'accent' : ''}`}>{bands} 밴드</span>
-                {g.lossy && <span className="badge warn">JPG</span>}
+              <div className="gel-info">
+                {renaming === g.id ? (
+                  <input type="text" autoFocus defaultValue={g.name} onClick={(e) => e.stopPropagation()}
+                    onBlur={(e) => { update((d) => { const x = findGel(d, g.id); if (x) x.name = e.target.value || x.name; }); setRenaming(null); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); if (e.key === 'Escape') setRenaming(null); }} />
+                ) : (
+                  <div className="name" title={g.name} onDoubleClick={(e) => { e.stopPropagation(); setRenaming(g.id); }}>{g.name}</div>
+                )}
+                <div className="meta">
+                  <span className="badge">{g.lanes.length} 레인</span>
+                  <span className={`badge ${bands && assigned === bands ? 'ok' : bands ? 'accent' : ''}`}>{bands} 밴드</span>
+                  {g.lossy && <span className="badge warn">JPG</span>}
+                </div>
               </div>
-              <div style={{ position: 'absolute', top: 8, right: 8 }} onClick={(e) => e.stopPropagation()}>
+              <div style={{ position: 'absolute', top: 3, right: 3 }} onClick={(e) => e.stopPropagation()}>
                 <Menu button={(_, t) => <button className="btn sm icon" style={{ background: 'rgba(255,255,255,.85)', color: '#1d2330' }} onClick={t}><Icon name="more" size={14} stroke={3} /></button>}>
                   {(close) => (
                     <>

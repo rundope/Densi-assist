@@ -142,13 +142,14 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--line-st
 /* ---------- sidebar (gels) ---------- */
 /* 이미지 목록은 화면 맨 위에 가로 띠로 둔다 */
 .sidebar { grid-area: strip; background: var(--panel); border-bottom: 1px solid var(--line); display: flex; flex-direction: row; align-items: stretch; min-width: 0; }
-.sidebar-head { padding: 8px 12px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 6px; flex-shrink: 0; border-right: 1px solid var(--line); }
+.sidebar-head { padding: 4px 10px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 4px; flex-shrink: 0; border-right: 1px solid var(--line); }
 .sidebar-head h3 { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--text-3); }
-.gel-list { overflow-x: auto; overflow-y: hidden; padding: 6px 8px; display: flex; gap: 8px; align-items: flex-start; flex: 1; min-width: 0; }
-.gel-item { flex: 0 0 132px; border: 1px solid var(--line); border-radius: 8px; padding: 6px; cursor: pointer; background: var(--panel); display: grid; gap: 5px; position: relative; }
+.gel-list { overflow-x: auto; overflow-y: hidden; padding: 5px 8px; display: flex; gap: 8px; align-items: flex-start; flex: 1; min-width: 0; }
+.gel-item { flex: 0 0 auto; width: 196px; border: 1px solid var(--line); border-radius: 8px; padding: 4px; cursor: pointer; background: var(--panel); display: flex; align-items: center; gap: 8px; position: relative; }
+.gel-info { display: grid; gap: 3px; min-width: 0; flex: 1; padding-right: 18px; }
 .gel-item:hover { border-color: var(--line-strong); }
 .gel-item.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-weak); }
-.gel-thumb { width: 100%; aspect-ratio: 16/9; background: var(--canvas-bg); border-radius: 5px; object-fit: contain; display: block; }
+.gel-thumb { flex: none; width: 72px; height: 46px; aspect-ratio: auto; background: var(--canvas-bg); border-radius: 5px; object-fit: contain; display: block; }
 .gel-item .name { font-weight: 600; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gel-item .meta { display: flex; gap: 4px; flex-wrap: wrap; }
 
@@ -340,3 +341,10 @@ table.tbl { border-collapse: collapse; width: 100%; font-size: 12px; }
 /* ---------- 붙여넣기 안내 ---------- */
 .paste-guide { margin-top: 6px; text-align: left; font-size: 12.5px; color: var(--text-2); cursor: default; max-width: 520px; }
 .paste-guide ol { margin: 4px 0 0; padding-left: 18px; display: grid; gap: 2px; }
+
+/* ---------- ? 도움말 ---------- */
+.help-btn { display: inline-grid; place-items: center; width: 15px; height: 15px; margin-left: 5px; padding: 0; border-radius: 50%; border: 1px solid var(--line-strong); background: transparent; color: var(--text-3); font-size: 10px; font-weight: 700; line-height: 1; cursor: pointer; vertical-align: 1px; }
+.help-btn:hover, .help-btn.on { border-color: var(--accent); color: var(--accent); background: var(--accent-weak); }
+.help-pop { position: fixed; z-index: 60; width: 268px; padding: 9px 11px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line-strong); box-shadow: 0 6px 24px rgba(0, 0, 0, .18); font-size: 12px; line-height: 1.5; color: var(--text); font-weight: 400; text-transform: none; letter-spacing: 0; }
+.label-extra { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--text-2); cursor: pointer; white-space: nowrap; }
+.label-extra input { margin: 0; }
