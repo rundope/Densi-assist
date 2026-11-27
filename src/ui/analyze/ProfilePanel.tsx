@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { Band, Gel, Lane } from '../../core/types';
 import { BASELINE_MAP } from '../../core/baseline/registry';
-import { analyzeLane, variantFor, type LaneAnalysis, type ProcessedGel } from '../../engine/engine';
+import { analyzeLane, type LaneAnalysis, type ProcessedGel } from '../../engine/engine';
+import { composedProfile, exportLaneGraphs } from './laneExport';
 import { BAND_DEFAULT_COLOR } from '../colors';
 import { newBand } from '../../state/project';
 import { findGel, useApp } from '../../state/store';
@@ -16,6 +17,7 @@ type ChartDrag =
   | { kind: 'new-band'; a: number; b: number };
 
 export function ProfilePanel({ gel, data }: { gel: Gel; data: ProcessedGel | null }) {
+  const [busy, setBusy] = useState(false);
   const ui = useApp((s) => s.ui);
   const negative = useApp((s) => s.project.settings.negative);
   const setUi = useApp((s) => s.setUi);
@@ -80,6 +82,11 @@ export function ProfilePanel({ gel, data }: { gel: Gel; data: ProcessedGel | nul
             <Icon name="grid" size={15} />전체 레인 비교
           </button>
         </div>
+        <button className="btn sm export-graphs" disabled={!data || !gel.lanes.length || busy}
+          onClick={async () => { if (!data) return; setBusy(true); try { await exportLaneGraphs(gel, data); } finally { setBusy(false); } }}
+          title="모든 레인의 그래프를 레인마다 PNG 이미지 한 장씩 저장합니다. 폴더를 고르면 그 폴더에 저장합니다">
+          <Icon name="download" size={14} />{busy ? '저장 중…' : `그래프 이미지 저장 (${gel.lanes.length}장)`}
+        </button>
       </div>
       <div className="profile-body">
         {ui.showAllLanes ? (
@@ -147,19 +154,7 @@ function ProfileChart({ gel, lane, an }: { gel: Gel; lane: Lane; an: LaneAnalysi
 
   // 기울어진 밴드 구간은 그 기울기로 다시 뽑은 프로파일·바닥선을 그린다
   // (검은 선이 기울기 조절에 따라 바뀌어 실제로 적분하는 값과 일치하도록)
-  const { y, base } = useMemo(() => {
-    const yy = new Float64Array(an.profile.values);
-    const bb = new Float64Array(an.baseline);
-    for (const b of lane.bands) {
-      if (!b.tilt) continue;
-      const v = variantFor(an, b.tilt);
-      for (let i = Math.max(0, b.start); i <= Math.min(n - 1, b.end); i++) {
-        yy[i] = v.profile.values[i];
-        bb[i] = v.baseline[i];
-      }
-    }
-    return { y: yy, base: bb };
-  }, [an, lane.bands, n]);
+  const { y, base } = useMemo(() => composedProfile(an, lane), [an, lane]);
 
   const [lo, hi] = useMemo(() => {
     let a = Infinity, b = -Infinity;

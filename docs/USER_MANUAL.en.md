@@ -234,6 +234,7 @@ Click **③ 밴드** (Band) at the top. Two buttons appear next to it.
 - The image strip above the graph is the selected lane laid on its side, so positions line up with the graph.
 - Each peak shows the band number and **% (its share within that lane)**.
 - Hover over the graph to see position, profile, baseline and signal values at the top right.
+- **그래프 이미지 저장 (N장)** (Save graph images): button at the top right of the graph. Saves every lane's graph as **one PNG per lane** (1600×1000, with title, lane strip, profile, baseline and band areas). In Chrome and Edge, **choose a folder** and the files are saved there; browsers without folder selection (Firefox, Safari, etc.) download a single zip file. File names look like `imagename_레인01_samplename.png`.
 - **그래프 보기** (Graph view) switch (blue-bordered buttons at the top right of the graph): **선택 레인** (Selected lane) shows one lane large, and **전체 레인 비교** (Compare all lanes) shows small graphs and bands of every lane side by side. Useful for checking that the baseline and bands are set similarly in each lane. The Spoonbill bubble also points to these two views.
 
 ### ⑤ 밴드 · 타깃 (Bands · Targets, left panel)
