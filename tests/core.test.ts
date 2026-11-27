@@ -11,7 +11,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { extractProfile } from '../src/core/profile';
 import { detectLanes } from '../src/core/lanes';
 import { summarize, type BandRow } from '../src/core/results';
-import { newBand } from '../src/state/project';
+import { newBand, newLane, syncLaneBoxes } from '../src/state/project';
 import { correctedSource, originalSource } from '../src/ui/render';
 import type { Gel } from '../src/core/types';
 import type { ProcessedGel } from '../src/engine/engine';
@@ -444,5 +444,22 @@ describe('2D 배경 제거: 강도·상수 빼기·얼룩만 고르게', () => {
     removeBackground(a, w, h, { ...base, method: 'flatten' });
     expect(sd(bgRegion(a))).toBeLessThan(sd0 * 0.5);
     expect(Math.abs(mean(bgRegion(a)) - mean0)).toBeLessThan(6);       // 롤링볼처럼 0으로 내려가지 않음
+  });
+});
+
+describe('모든 레인 크기를 같게 (syncLaneBoxes)', () => {
+  it('위아래로 옮긴 레인이 있어도 폭·위·아래 끝을 모두 맞춘다', () => {
+    // 재현: S4만 아래로 옮긴 뒤(위 끝 465) 다른 레인의 아래 테두리를 끌면, 예전에는 아래 끝만 맞아 높이가 달라졌다
+    const lanes = [
+      newLane({ cx: 100, width: 60, top: 445, bottom: 540 }),
+      newLane({ cx: 200, width: 60, top: 445, bottom: 540 }),
+      newLane({ cx: 300, width: 60, top: 465, bottom: 560 }),
+    ];
+    lanes[0].bottom = 600;
+    syncLaneBoxes(lanes, lanes[0]);
+    for (const l of lanes) {
+      expect([l.width, l.top, l.bottom]).toEqual([60, 445, 600]);
+    }
+    expect(lanes.map((l) => l.cx)).toEqual([100, 200, 300]);
   });
 });

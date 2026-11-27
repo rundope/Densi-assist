@@ -174,13 +174,8 @@ kbd { font-family: var(--mono); font-size: 11px; border: 1px solid var(--line-st
 .viewport .hud > * { pointer-events: auto; }
 .hud-chip { background: rgba(20, 23, 28, .78); color: #e6e9ef; border-radius: 6px; padding: 3px 8px; font-size: 12px; font-variant-numeric: tabular-nums; backdrop-filter: blur(4px); }
 /* 이미지를 가리지 않도록 왼쪽 위에 둔다 */
-.viewport .banner { position: absolute; top: 10px; left: 10px; background: var(--panel); color: var(--text); border-radius: 8px; box-shadow: var(--shadow-lg); padding: 5px 6px 5px 10px; display: flex; gap: 8px; align-items: center; max-width: calc(100% - 20px); font-size: 12px; white-space: nowrap; opacity: .93; }
-.viewport .banner:hover { opacity: 1; }
 .viewport .view-controls { position: absolute; right: 10px; bottom: 10px; display: flex; gap: 4px; }
 /* 원본 이미지 보기 (오른쪽 위) */
-.viewport .orig-toggle { position: absolute; top: 10px; right: 10px; display: flex; align-items: center; gap: 6px; background: var(--panel); color: var(--text); border: 1.5px solid var(--line-strong); border-radius: 8px; padding: 5px 10px; font-size: 12px; font-weight: 600; cursor: pointer; box-shadow: var(--shadow); }
-.viewport .orig-toggle.on { background: var(--accent); color: #fff; border-color: var(--accent); }
-.viewport .orig-toggle input { margin: 0; }
 .viewport .progress { position: absolute; top: 0; left: 0; height: 3px; background: var(--accent); transition: width .2s; }
 .viewport .center-msg { position: absolute; inset: 0; display: grid; place-items: center; color: #c9ced8; }
 
@@ -414,17 +409,44 @@ table.tbl { border-collapse: collapse; width: 100%; font-size: 12px; }
 /* ---------- 안내 마스코트(Spoonbill)와 말풍선 ---------- */
 .guide { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .guide .mascot { width: 46px; height: auto; flex: none; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, .08)); }
-.bubble { position: relative; display: grid; gap: 2px; padding: 7px 12px; border-radius: 12px; background: var(--panel); border: 1.5px solid #c9dcf7; font-size: 12.5px; color: var(--text-2); line-height: 1.35; max-width: 620px; }
-.bubble::before { content: ''; position: absolute; left: -8px; top: 50%; transform: translateY(-50%); border: 8px solid transparent; border-left: 0; border-right-color: #c9dcf7; }
-.bubble::after { content: ''; position: absolute; left: -5.5px; top: 50%; transform: translateY(-50%); border: 6.5px solid transparent; border-left: 0; border-right-color: var(--panel); }
-.bubble-now b { color: var(--accent); margin-right: 4px; }
-.bubble-next { color: var(--ok); font-weight: 600; }
-.bubble-next b { color: var(--ok); }
-.bubble.ready { border-color: #9bd8b8; }
-.bubble.ready::before { border-right-color: #9bd8b8; }
 .step-guide .btn.next.pulse { animation: nextPulse 1.6s ease-out infinite; }
 @keyframes nextPulse { 0% { box-shadow: 0 0 0 0 rgba(37, 99, 235, .55); } 70% { box-shadow: 0 0 0 12px rgba(37, 99, 235, 0); } 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); } }
 @media (prefers-reduced-motion: reduce) { .step-guide .btn.next.pulse { animation: none; } }
 
 .slider-row.with-unit { grid-template-columns: 1fr 64px 22px; }
 .slider-row .unit { font-size: 12px; color: var(--text-3); }
+
+/* 스푼빌 말풍선: 노란 형광펜처럼 눈에 띄게. 내용이 바뀌면 한 번 반짝인다 */
+.bubble { position: relative; display: grid; gap: 3px; padding: 8px 14px; border-radius: 12px; background: #fff6c7; border: 2px solid #f2c230; font-size: 13.5px; color: #3d3200; line-height: 1.4; max-width: 680px; box-shadow: 0 2px 8px rgba(242, 194, 48, .35); animation: bubbleIn .9s ease-out; }
+.bubble::before { content: ''; position: absolute; left: -10px; top: 50%; transform: translateY(-50%); border: 9px solid transparent; border-left: 0; border-right-color: #f2c230; }
+.bubble::after { content: ''; position: absolute; left: -6.5px; top: 50%; transform: translateY(-50%); border: 7px solid transparent; border-left: 0; border-right-color: #fff6c7; }
+.bubble-now { font-weight: 600; }
+.bubble-now b { display: inline-block; margin-right: 6px; padding: 0 7px; border-radius: 6px; background: #f2c230; color: #3d3200; font-weight: 800; }
+.bubble-next { color: #157347; font-weight: 700; }
+.bubble-next b { color: #157347; }
+@keyframes bubbleIn { 0% { transform: scale(.96); box-shadow: 0 0 0 0 rgba(242, 194, 48, .8); } 40% { transform: scale(1.02); box-shadow: 0 0 0 8px rgba(242, 194, 48, .25); } 100% { transform: scale(1); box-shadow: 0 2px 8px rgba(242, 194, 48, .35); } }
+@media (prefers-reduced-motion: reduce) { .bubble { animation: none; } }
+[data-theme='dark'] .bubble { background: #3a3110; color: #fbefc0; border-color: #c9a227; }
+[data-theme='dark'] .bubble::after { border-right-color: #3a3110; }
+[data-theme='dark'] .bubble-now b { color: #2a2200; }
+
+/* 왼쪽 패널: 단계 제목을 크게 */
+.block.big .block-head h3 { font-size: 24px; font-weight: 800; }
+.block.big .block-head p { font-size: 13.5px; }
+
+/* 레인 단계: 순서대로 할 일 */
+.howto { list-style: none; counter-reset: howto; margin: 0 0 16px; padding: 12px 12px 4px; border-radius: 10px; background: var(--accent-weak); border: 1.5px solid var(--line-strong); display: grid; gap: 10px; }
+.howto li { counter-increment: howto; position: relative; padding-left: 32px; display: grid; gap: 4px; font-size: 13px; color: var(--text-2); padding-bottom: 8px; }
+.howto li::before { content: counter(howto); position: absolute; left: 0; top: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font-weight: 800; font-size: 13px; display: grid; place-items: center; }
+.howto li b { font-size: 15px; color: var(--text); }
+.howto li em { font-style: normal; font-weight: 700; color: var(--accent); }
+.howto li .btn { vertical-align: middle; margin-left: 2px; }
+
+/* 확대했을 때 화면 이동 안내 */
+.viewport .pan-hint { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 14px; border-radius: 12px; background: #fff6c7; border: 2px solid #f2c230; color: #3d3200; box-shadow: var(--shadow-lg); z-index: 5; animation: bubbleIn .9s ease-out; }
+.viewport .pan-hint > div { display: grid; gap: 1px; font-size: 13px; }
+.viewport .pan-hint b { font-size: 14px; }
+.viewport .pan-hint em { font-style: normal; font-weight: 800; background: #f2c230; padding: 0 4px; border-radius: 4px; }
+.viewport .pan-hint small { color: #6b5a10; font-size: 11.5px; }
+.viewport .hud-chip.pan { background: #fff6c7; color: #3d3200; }
+

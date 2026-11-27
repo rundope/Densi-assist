@@ -10,7 +10,6 @@
 - **기울어진 밴드**: 밴드마다 기울기를 줘서 비스듬히 내려간 밴드를 따라 적분합니다.
 - **베이스라인**: Rolling ball(기본), Top-hat, Rubber band, SNIP, 이동 중앙값, 수동(밴드별 시작·끝점).
 - **이미지 전체 배경 제거**: rolling ball / sliding paraboloid (ImageJ Subtract Background와 같은 알고리즘).
-- **원본 이미지 보기**: 레인·밴드 표시를 숨기고 원본과 번갈아 비교 (O 키).
 - **재현성**: 모든 설정을 프로젝트 파일(.densi)에 저장하고, 엑셀 내보내기의 "설정" 시트에 기록합니다.
 - 입력: TIFF (8/16/32-bit, 여러 페이지), PNG (16-bit 포함), JPG, BMP
 

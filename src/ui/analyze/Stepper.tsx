@@ -20,12 +20,12 @@ function guideFor(step: number, lanes: number, bands: number): Guide {
   if (step === 0) return { now: '왼쪽에서 밴드 색과 보정을 확인하세요. 오른쪽 "보정 후" 이미지가 바로 바뀝니다.', ready: true };
   if (step === 1) {
     return lanes > 0
-      ? { now: `레인 ${lanes}개를 잡았어요. 위치와 폭이 맞는지 확인하세요.`, ready: true }
-      : { now: '"레인 검출 (Auto)"을 누르거나, 이미지 위에서 끌어서 레인을 그리세요.', ready: false };
+      ? { now: `레인 ${lanes}개를 잡았어요. 위치·폭을 확인하세요 (레인 끌기: 이동 · 테두리 끌기: 크기 · 빈 곳 클릭: 추가).`, ready: true }
+      : { now: '"레인 검출 (Auto)"을 누르세요. 직접 그리려면 이미지 위를 끌거나, 레인 자리를 클릭하세요.', ready: false };
   }
   return bands > 0
     ? { now: `밴드 ${bands}개를 잡았어요. 아래 그래프에서 밴드 범위를 확인하세요.`, ready: true }
-    : { now: '"밴드 검출 (Auto)"을 누르거나, 레인 안에서 위아래로 끌어 밴드를 그리세요.', ready: false };
+    : { now: '"밴드 검출 (Auto)"을 누르세요. 직접 그리려면 레인 안을 위아래로 끌거나, 아래 그래프를 좌우로 끄세요.', ready: false };
 }
 
 export function Stepper() {
@@ -66,7 +66,7 @@ export function Stepper() {
         {guide && (
           <div className="guide">
             <img className="mascot" src={SPOONBILL_LOGO} alt="" aria-hidden />
-            <div className={`bubble ${guide.ready ? 'ready' : ''}`} role="status">
+            <div key={`${cur}-${guide.now}`} className={`bubble ${guide.ready ? 'ready' : ''}`} role="status">
               <span className="bubble-now"><b>지금 할 일</b> {guide.now}</span>
               {guide.ready && <span className="bubble-next">다 됐으면 → <b>다음: {STEPS[cur].next}</b>를 누르세요</span>}
             </div>

@@ -2,9 +2,9 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { BASELINES, BASELINE_MAP, GROUP_LABELS, VISIBLE_BASELINES, cloneSpec, makeSpec, type BaselineGroup } from '../../core/baseline/registry';
 import type { Background2DMethod, BaselineMethod, BaselineSpec, Gel, Polarity, Project } from '../../core/types';
 import { analyzeLane, type ProcessedGel } from '../../engine/engine';
-import { newBand, newTarget } from '../../state/project';
+import { newBand, newTarget, syncLaneBoxes } from '../../state/project';
 import { findGel, useApp } from '../../state/store';
-import { copyLanesToGel, copySettingsToAll } from '../../state/actions';
+import { autoDetectLanes, copyLanesToGel, copySettingsToAll } from '../../state/actions';
 import { copyText, Icon, Menu, NumberSlider, Seg, Help } from '../common';
 import { fmt, fmtPct } from '../render';
 import { BAND_DEFAULT_COLOR } from '../colors';
@@ -17,7 +17,7 @@ export function Inspector({ gel, data }: { gel: Gel; data: ProcessedGel | null }
     <aside className="inspector">
       {tool === 'select' && <PrepareSettings gel={gel} />}
       {tool === 'lane' && (
-        <Block title="레인" sub="레인 폭과 샘플 이름">
+        <Block title="레인" sub="이미지에서 시료 한 줄 = 레인 하나" big>
           <LanesSection gel={gel} project={project} />
         </Block>
       )}
@@ -36,9 +36,9 @@ export function Inspector({ gel, data }: { gel: Gel; data: ProcessedGel | null }
 }
 
 /** 왼쪽 패널의 한 덩어리. 접거나 펼치지 않고 제목만 크게 보여준다 */
-function Block({ title, sub, help, children }: { title: string; sub?: string; help?: ReactNode; children: ReactNode }) {
+function Block({ title, sub, help, big, children }: { title: string; sub?: string; help?: ReactNode; big?: boolean; children: ReactNode }) {
   return (
-    <section className="block">
+    <section className={`block ${big ? 'big' : ''}`}>
       <header className="block-head">
         <h3>{title}{help && <Help>{help}</Help>}</h3>
         {sub && <p>{sub}</p>}
@@ -166,16 +166,42 @@ function LanesSection({ gel, project }: { gel: Gel; project: Project }) {
   const ref = gel.lanes.find((l) => l.id === ui.selectedLaneId) ?? gel.lanes[0];
   const others = project.gels.filter((g) => g.id !== gel.id);
 
-  if (!gel.lanes.length) {
-    return <div className="hint">위쪽의 <b>레인 검출 (Auto)</b>을 누르거나, 이미지 위에서 끌어서 레인을 그리세요.</div>;
-  }
+  const howTo = (
+    <ol className="howto">
+      <li>
+        <b>레인 잡기</b>
+        <span>자동: <button className="btn sm primary" onClick={() => autoDetectLanes(gel.id)}><Icon name="wand" size={13} />레인 검출 (Auto)</button></span>
+        <span>직접: 이미지 위를 <em>끌어서</em> 그리거나, 레인 자리를 <em>클릭</em>하면 같은 크기로 추가됩니다</span>
+      </li>
+      <li>
+        <b>위치·폭 맞추기</b>
+        <span>레인을 끌면 이동, 테두리를 끌면 크기 조절</span>
+      </li>
+      <li>
+        <b>샘플 이름 적기</b>
+        <span>아래 표에 적거나 엑셀에서 붙여넣기</span>
+      </li>
+    </ol>
+  );
+
+  if (!gel.lanes.length) return howTo;
   return (
     <>
+      {howTo}
       {ref && (
         <>
           <NumberSlider label="레인 폭" unit="px" min={4} max={Math.max(40, Math.round(gel.sourceWidth / 3))} step={1} value={Math.round(ref.width)}
-            onChange={(v) => up((g) => { for (const l of g.lanes) if (ui.syncLaneSize || l.id === ref.id) l.width = v; }, 'laneWidth')} />
-          <label className="check" style={{ marginBottom: 10 }}><input type="checkbox" checked={ui.syncLaneSize} onChange={(e) => setUi({ syncLaneSize: e.target.checked })} />모든 레인 크기를 같게</label>
+            onChange={(v) => up((g) => {
+              const r = g.lanes.find((l) => l.id === ref.id);
+              if (!r) return;
+              r.width = v;
+              if (ui.syncLaneSize) syncLaneBoxes(g.lanes, r);
+            }, 'laneWidth')} />
+          <label className="check" style={{ marginBottom: 10 }}><input type="checkbox" checked={ui.syncLaneSize} onChange={(e) => {
+            setUi({ syncLaneSize: e.target.checked });
+            // 켜는 순간 선택한 레인(없으면 첫 레인)에 크기를 맞춘다
+            if (e.target.checked) up((g) => { const r = g.lanes.find((l) => l.id === ref.id); if (r) syncLaneBoxes(g.lanes, r); }, 'laneSync');
+          }} />모든 레인 크기를 같게</label>
         </>
       )}
       <NumberSlider label="양옆 가장자리 제외" unit="% 폭" min={0} max={40} step={1} value={gel.profile.edgeTrimPct}
