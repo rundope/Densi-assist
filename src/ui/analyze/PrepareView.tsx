@@ -20,6 +20,13 @@ function Pane({ title, caption, source, dim }: { title: string; caption: string;
   );
 }
 
+/** 측정용 이미지는 밴드가 클수록 큰 값이 되도록 만들므로, 어두운 밴드 이미지는 반전되어 밴드가 하얗게 보인다 */
+function measuredCaption(p: Gel['preprocess']['polarity']) {
+  if (p === 'dark-bands') return '어두운 밴드를 반전해서 계산합니다 · 밴드가 하얗게 보이면 정상';
+  if (p === 'light-bands') return '밝은 밴드를 그대로 계산합니다 · 밴드가 하얗게 보이면 정상';
+  return '광학 밀도(OD)로 변환해서 계산합니다 · 밴드가 하얗게 보이면 정상';
+}
+
 /**
  * ① 이미지 준비 단계의 화면. 올린 그대로의 이미지와, 실제 측정에 쓰이는 이미지를 나란히 보여준다.
  * 밴드 색·컬러→흑백·감마·부드럽게·배경 제거를 바꾸면 오른쪽이 바로 바뀌므로 설정의 효과가 눈에 보인다.
@@ -46,7 +53,7 @@ export function PrepareView({ gel, data, status }: { gel: Gel; data: ProcessedGe
           <div className="prep-pair">
             <Pane title="원본" caption="올린 그대로 (화면 밝기만 자동 조절)" source={original} />
             <div className="prep-arrow" aria-hidden>→</div>
-            <Pane title="측정에 쓰이는 이미지" caption="밴드가 밝을수록 큰 값 · 아래 설정이 반영됨" source={measured} />
+            <Pane title="측정에 쓰이는 이미지" caption={measuredCaption(gel.preprocess.polarity)} source={measured} />
           </div>
           <div className="prep-foot">
             {gel.fileName} · {data.width}×{data.height} · {gel.bitDepth}-bit{gel.isRGB ? ' RGB' : ''} — 오른쪽 이미지가 ② 레인, ③ 밴드, ④ 결과의 모든 계산에 쓰입니다.

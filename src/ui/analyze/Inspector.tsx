@@ -101,7 +101,7 @@ function ImageSection({ gel, data }: { gel: Gel; data: ProcessedGel | null }) {
       {satCount > 0 && <div className="note warn" style={{ marginBottom: 6 }}>포화 픽셀 {satCount.toLocaleString()}개 — 해당 밴드는 값이 작게 나올 수 있습니다.</div>}
 
       <div className="field">
-        <div className="label"><span>밴드 색<Help>측정에서 어느 쪽을 신호로 볼지 정합니다. 위쪽 이미지 화면은 바뀌지 않고, 아래 그래프와 측정값에 반영됩니다. 바뀐 모습은 &quot;배경 제거된 이미지로 보기&quot;를 켜면 볼 수 있습니다. OD(광학 밀도)는 필름·투과광 스캔에서 흡광도에 비례하는 값을 얻을 때 씁니다.</Help></span></div>
+        <div className="label"><span>밴드 색<Help>측정에서 어느 쪽을 신호로 볼지 정합니다. 오른쪽 &quot;측정에 쓰이는 이미지&quot;에서 밴드가 하얗게 보이면 올바른 설정입니다(어두운 밴드는 반전해서 계산합니다). OD(광학 밀도)는 필름·투과광 스캔에서 흡광도에 비례하는 값을 얻을 때 씁니다.</Help></span></div>
         <select value={p.polarity} onChange={(e) => up((g) => { g.preprocess.polarity = e.target.value as Polarity; })}>
           <option value="dark-bands">밝은 배경에 어두운 밴드</option>
           <option value="light-bands">어두운 배경에 밝은 밴드 (형광 등)</option>
