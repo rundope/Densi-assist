@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import type { Gel } from '../../core/types';
-import type { GelStatus, ProcessedGel } from '../../engine/engine';
+import { engine, type GelStatus, type ProcessedGel } from '../../engine/engine';
 import { correctedSource, originalSource, renderToImageData, type RenderSource } from '../render';
 
-function Pane({ title, caption, source, notice, reserve = 0 }: { title: string; caption: string; source: RenderSource | null; notice?: ReactNode; reserve?: number }) {
+function Pane({ title, caption, source, notice, reserve = 0, busy = false }: { title: string; caption: string; source: RenderSource | null; notice?: ReactNode; reserve?: number; busy?: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     const c = ref.current;
@@ -14,7 +14,7 @@ function Pane({ title, caption, source, notice, reserve = 0 }: { title: string; 
   }, [source]);
   return (
     <section className="prep-card">
-      <header><b>{title}</b><small>{caption}</small></header>
+      <header><b>{title}{busy && <span className="busy-tag">적용 중…</span>}</b><small>{caption}</small></header>
       <div className="prep-stage"><canvas ref={ref} className="prep-canvas" /></div>
       {notice ?? (reserve > 0 ? <div style={{ minHeight: reserve }} /> : null)}
     </section>
@@ -45,8 +45,14 @@ export function PrepareView({ gel, data, status }: { gel: Gel; data: ProcessedGe
   const notices = useNotices(gel, data);
   // 오른쪽 카드에도 같은 높이를 비워 두어 두 이미지가 같은 크기·같은 위치로 보이게 한다
   const noticeH = notices.length * 21 + 20;
-  const original = data ? originalSource(gel, data) : null;
-  const corrected = data ? correctedSource(gel, data) : null;
+  // 다시 그릴 필요가 있을 때만 새 소스를 만든다 (설정과 무관한 렌더링마다 캔버스를 다시 그리지 않게)
+  const d = gel.display;
+  const original = useMemo(() => (data ? originalSource(gel, data) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [data, d.min, d.max]);
+  const corrected = useMemo(() => (data ? correctedSource(gel, data) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [data, d.min, d.max, d.gamma, d.applyToData, d.smooth, d.smoothApply, gel.preprocess.polarity, gel.background.method]);
   return (
     <div className="prepare">
       {status.state === 'error' && <div className="note err">{status.message}</div>}
@@ -57,7 +63,7 @@ export function PrepareView({ gel, data, status }: { gel: Gel; data: ProcessedGe
             <Pane title="원본" caption="올린 그대로" source={original}
               notice={notices.length > 0 ? <ul className="prep-notice" style={{ minHeight: noticeH }}>{notices.map((n) => <li key={n}>{n}</li>)}</ul> : undefined} />
             <div className="prep-arrow" aria-hidden>→</div>
-            <Pane title="보정 후" caption="왼쪽 설정이 반영된 모습 · 이 이미지로 측정합니다" source={corrected} reserve={notices.length > 0 ? noticeH : 0} />
+            <Pane title="보정 후" caption="왼쪽 설정이 반영된 모습 · 이 이미지로 측정합니다" source={corrected} reserve={notices.length > 0 ? noticeH : 0} busy={engine.isBusy(gel.id)} />
           </div>
           <div className="prep-foot">{gel.fileName} · {data.width}×{data.height} · {gel.bitDepth}-bit{gel.isRGB ? ' RGB' : ''}</div>
         </>
