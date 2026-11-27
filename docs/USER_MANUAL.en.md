@@ -91,6 +91,7 @@ The settings panel (H) is grouped as: **1. 선택** (Select) → **① 이미지
 
 **Method 1.** On the start screen, drag files onto the dashed box, or click the box to choose files.
 **Method 2.** While working, click **+ 추가** (Add) above the image list, or drop files anywhere in the window.
+**Method 3.** Paste a copied image (screen capture, copied from another program, or an image file copied in Explorer) with **Ctrl+V** in the app window. Screenshots are usually 8-bit, so original TIFF files give more accurate quantification.
 
 - You can add several images at once.
 - Supported formats: **TIFF** (8/16/32-bit, multi-page), **PNG** (including 16-bit), **JPG**, BMP
