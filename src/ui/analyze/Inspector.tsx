@@ -6,7 +6,7 @@ import { analyzeLane, type ProcessedGel } from '../../engine/engine';
 import { newBand, newTarget } from '../../state/project';
 import { findGel, useApp, type Section, type Tool } from '../../state/store';
 import { copyLanesToGel, copySettingsToAll } from '../../state/actions';
-import { copyText, Icon, Menu, NumberSlider, Seg } from '../common';
+import { copyText, Icon, Menu, NumberSlider, Seg, Help } from '../common';
 import { fmt, fmtPct } from '../render';
 import { BAND_DEFAULT_COLOR } from '../colors';
 
@@ -105,19 +105,17 @@ function ImageSection({ gel, data }: { gel: Gel; data: ProcessedGel | null }) {
       {satCount > 0 && <div className="note warn" style={{ marginBottom: 6 }}>포화 픽셀 {satCount.toLocaleString()}개 — 해당 밴드는 값이 작게 나올 수 있습니다.</div>}
 
       <div className="field">
-        <div className="label"><span>밴드 색</span></div>
+        <div className="label"><span>밴드 색<Help>측정에서 어느 쪽을 신호로 볼지 정합니다. 위쪽 이미지 화면은 바뀌지 않고, 아래 그래프와 측정값에 반영됩니다. 바뀐 모습은 &quot;배경 제거된 이미지로 보기&quot;를 켜면 볼 수 있습니다. OD(광학 밀도)는 필름·투과광 스캔에서 흡광도에 비례하는 값을 얻을 때 씁니다.</Help></span></div>
         <select value={p.polarity} onChange={(e) => up((g) => { g.preprocess.polarity = e.target.value as Polarity; })}>
           <option value="dark-bands">밝은 배경에 어두운 밴드</option>
           <option value="light-bands">어두운 배경에 밝은 밴드 (형광 등)</option>
           <option value="dark-bands-od">어두운 밴드, 광학 밀도(OD)로 변환</option>
         </select>
-        <div className="hint">측정에서 어느 쪽을 신호로 볼지 정합니다. 위의 이미지 화면은 바뀌지 않고, 아래 그래프와 측정값에 반영됩니다. (바뀐 모습은 &quot;배경 제거된 이미지로 보기&quot;를 켜면 볼 수 있습니다.)</div>
-        {p.polarity === 'dark-bands-od' && <div className="hint">필름·투과광 스캔에서 흡광도에 비례하는 값을 얻을 때 씁니다.</div>}
       </div>
 
       {gel.isRGB && (
         <div className="field">
-          <div className="label"><span>컬러 → 흑백</span></div>
+          <div className="label"><span>컬러 → 흑백<Help>컬러 이미지를 흑백으로 바꾸는 방법입니다. 이미지가 이미 흑백(색 없음)이면 무엇을 골라도 결과가 같습니다.</Help></span></div>
           <select value={p.grayMode} onChange={(e) => up((g) => { g.preprocess.grayMode = e.target.value as Gel['preprocess']['grayMode']; })}>
             <option value="luminance">밝기 (기본)</option>
             <option value="mean">RGB 평균</option>
@@ -125,22 +123,22 @@ function ImageSection({ gel, data }: { gel: Gel; data: ProcessedGel | null }) {
             <option value="green">초록 채널</option>
             <option value="blue">파랑 채널</option>
           </select>
-          <div className="hint">컬러 이미지를 흑백으로 바꾸는 방법입니다. 이미지가 이미 흑백(색 없음)이면 무엇을 골라도 결과가 같습니다.</div>
         </div>
       )}
 
-      <NumberSlider label="이미지 기울기 보정" unit="도" min={-10} max={10} step={0.1} value={p.rotateFine}
+      <NumberSlider label="이미지 기울기 보정" help="사진이 살짝 기울어 찍혔을 때 바로잡습니다. 측정에 반영됩니다." unit="도" min={-10} max={10} step={0.1} value={p.rotateFine}
         onChange={(v) => up((g) => { g.preprocess.rotateFine = v; }, 'rotateFine')} />
 
-      <div className="subhead">화면 밝기</div>
+      <div className="subhead">화면 밝기<Help>세로선을 끌어 화면에 보이는 밝기 범위를 정합니다. 기본은 화면에만 적용되고 측정값은 바뀌지 않습니다.</Help></div>
       <Histogram gel={gel} data={data} />
       <NumberSlider label="감마" min={0.1} max={4} step={0.05} value={d.gamma}
+        help="밝기 곡선을 비선형으로 바꿔 어두운 곳·밝은 곳을 보기 좋게 합니다. 측정에도 적용하면 밴드 사이 비율이 실제와 달라질 수 있어 결과에 표시가 남습니다. (표시 범위의 두 세로선도 함께 적용됩니다.)"
+        extra={<label className="label-extra" title="켜면 감마와 표시 범위를 측정에도 사용합니다"><input type="checkbox" checked={d.applyToData} onChange={(e) => up((g) => { g.display.applyToData = e.target.checked; })} />측정에도 적용</label>}
         onChange={(v) => up((g) => { g.display.gamma = v; }, 'gamma')} />
-      <NumberSlider label="화면 부드럽게 (표시만)" unit="px" min={0} max={3} step={0.1} value={d.smooth ?? 0}
+      <NumberSlider label="부드럽게" unit="px" min={0} max={3} step={0.1} value={d.smooth ?? 0}
+        help="점무늬·잡음을 줄입니다(가우시안 블러). 측정에도 적용하면 부드러워진 이미지에서 밴드를 읽습니다. 값이 클수록 더 뭉개져 가는 밴드가 퍼질 수 있으니 필요한 만큼만 쓰세요."
+        extra={<label className="label-extra" title="켜면 부드럽게 한 이미지에서 측정합니다"><input type="checkbox" checked={d.smoothApply ?? true} onChange={(e) => up((g) => { g.display.smoothApply = e.target.checked; })} />측정에도 적용</label>}
         onChange={(v) => up((g) => { g.display.smooth = v; }, 'smooth')} />
-      <div className="hint" style={{ marginBottom: 8 }}>
-        점무늬·잡음이 있는 이미지를 화면에서만 부드럽게 보여줍니다. 측정값은 바뀌지 않습니다.
-      </div>
       <div className="btn-row" style={{ marginBottom: 8 }}>
         <button className="btn sm" disabled={!data} onClick={() => {
           if (!data) return;
@@ -148,13 +146,6 @@ function ImageSection({ gel, data }: { gel: Gel; data: ProcessedGel | null }) {
           up((g) => { g.display.min = lo; g.display.max = hi > lo ? hi : lo + 1; });
         }}>자동 대비</button>
         <button className="btn sm" onClick={() => up((g) => { g.display.min = 0; g.display.max = g.bitDepth === 8 ? 255 : g.bitDepth === 16 ? 65535 : g.display.max; g.display.gamma = 1; })}>초기화</button>
-      </div>
-      <label className="check" style={{ marginBottom: 4 }}>
-        <input type="checkbox" checked={d.applyToData} onChange={(e) => up((g) => { g.display.applyToData = e.target.checked; })} />
-        밝기·감마를 측정값에도 적용
-      </label>
-      <div className={`hint ${d.applyToData ? 'warn-text' : ''}`} style={{ marginBottom: 8 }}>
-        {d.applyToData ? '켜짐: 밴드 사이 비율이 실제와 달라질 수 있어 결과에 표시가 남습니다.' : '꺼짐(권장): 화면만 바뀌고 측정값은 원본으로 계산합니다.'}
       </div>
       <label className="check"><input type="checkbox" checked={d.showCorrected} onChange={(e) => up((g) => { g.display.showCorrected = e.target.checked; })} />배경 제거된 이미지로 보기</label>
     </>
@@ -241,17 +232,15 @@ function BackgroundSection({ gel }: { gel: Gel }) {
   const b = gel.background;
   return (
     <>
-      <div className="hint" style={{ marginBottom: 8 }}>
-        이미지 <b>전체</b>의 얼룩·그늘을 지웁니다. 보통은 꺼 두고 ④ 베이스라인만 써도 충분합니다.
-      </div>
       <div className="field">
+        <div className="label"><span>방법<Help>이미지 <b>전체</b>의 얼룩·그늘을 지웁니다. 보통은 꺼 두고 ④ 베이스라인만 써도 충분합니다.</Help></span></div>
         <Seg value={b.method} onChange={(v) => up((g) => { g.background.method = v; })}
           options={[{ value: 'none', label: '사용 안 함' }, { value: 'rolling-ball', label: 'Rolling ball' }, { value: 'paraboloid', label: 'Paraboloid' }]} />
       </div>
       {b.method !== 'none' && (
         <>
           <NumberSlider label="반경" unit="px" min={2} max={400} step={1} value={b.radius}
-            hint="가장 두꺼운 밴드보다 크게 잡으세요."
+            help="가장 두꺼운 밴드보다 크게 잡으세요."
             onChange={(v) => up((g) => { g.background.radius = Math.round(v); }, 'bgRadius')} />
           <label className="check"><input type="checkbox" checked={b.presmooth} onChange={(e) => up((g) => { g.background.presmooth = e.target.checked; })} />잡티 무시 (작은 먼지·노이즈를 먼저 고름)</label>
         </>
@@ -284,17 +273,14 @@ function LanesSection({ gel, project }: { gel: Gel; project: Project }) {
         </>
       )}
       <NumberSlider label="양옆 가장자리 제외" unit="% 폭" min={0} max={40} step={1} value={gel.profile.edgeTrimPct}
-        hint="밴드 양끝의 번짐을 빼고 가운데만 잽니다 (점선 안쪽)."
+        help="밴드 양끝의 번짐을 빼고 가운데만 잽니다 (점선 안쪽)."
         onChange={(v) => up((g) => { g.profile.edgeTrimPct = v; }, 'trim')} />
       <div className="field">
-        <div className="label"><span>레인 폭 방향 값 합치기</span></div>
+        <div className="label"><span>레인 폭 방향 값 합치기<Help>{gel.profile.aggregate === 'mean'
+          ? '평균: 가로 한 줄의 픽셀 값을 평균합니다. 일반적으로 이걸 씁니다.'
+          : '중앙값: 가로 한 줄에서 가운데 값을 씁니다. 먼지·반점처럼 튀는 픽셀에 덜 흔들립니다.'}</Help></span></div>
         <Seg value={gel.profile.aggregate} onChange={(v) => up((g) => { g.profile.aggregate = v; })}
           options={[{ value: 'mean', label: '평균' }, { value: 'median', label: '중앙값' }]} />
-        <div className="hint">
-          {gel.profile.aggregate === 'mean'
-            ? '평균: 가로 한 줄의 픽셀 값을 평균합니다. 일반적으로 이걸 씁니다.'
-            : '중앙값: 가로 한 줄에서 가운데 값을 씁니다. 먼지·반점처럼 튀는 픽셀에 덜 흔들립니다.'}
-        </div>
       </div>
 
       <div className="subhead" style={{ display: 'flex', alignItems: 'center' }}>
@@ -373,13 +359,8 @@ function BaselineSection({ gel, project }: { gel: Gel; project: Project }) {
   const groups = (Object.keys(GROUP_LABELS) as BaselineGroup[]).filter((g) => BASELINES.some((b) => b.group === g && visible.includes(b.method)));
   return (
     <>
-      <div className="hint" style={{ marginBottom: 10 }}>
-        아래 그래프(레인 프로파일)에서 밴드 밑의 <b>바닥선</b>(주황 점선)을 정합니다. 바닥선 위 넓이가 밴드 값이 됩니다.
-        ② 배경 제거는 이미지 전체를, 베이스라인은 레인마다 처리합니다.
-      </div>
-
       <div className="field">
-        <div className="label"><span>방법</span></div>
+        <div className="label"><span>방법<Help>아래 그래프(레인 프로파일)에서 밴드 밑의 <b>바닥선</b>(주황 점선)을 정합니다. 바닥선 위 넓이가 밴드 값이 됩니다. ② 배경 제거는 이미지 전체를, 베이스라인은 레인마다 처리합니다.{spec.method === 'manual' && ' 수동: 그래프에서 각 밴드 양 끝의 동그라미를 끌어 시작·끝 위치와 바닥 높이를 정하고, 오른쪽 클릭하면 그 점은 자동(골짜기)으로 돌아갑니다.'}</Help></span></div>
         <select value={spec.method} onChange={(e) => {
           const m = e.target.value as BaselineMethod;
           setSpec((s) => makeSpec(m, s));
@@ -402,27 +383,23 @@ function BaselineSection({ gel, project }: { gel: Gel; project: Project }) {
         if (pd.options) {
           return (
             <div className="field" key={pd.key}>
-              <div className="label"><span>{pd.label}</span></div>
+              <div className="label"><span>{pd.label}{pd.hint && <Help>{pd.hint}</Help>}</span></div>
               <select value={v} onChange={(e) => {
                 const nv = Number(e.target.value);
                 setSpec((s) => ({ ...s, params: { ...s.params, [pd.key]: nv } }));
               }}>
                 {pd.options.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
-              {pd.hint && <div className="hint">{pd.hint}</div>}
             </div>
           );
         }
         const isPct = pd.unit?.includes('레인 길이');
         const unit = isPct && laneLen > 0 ? `% 레인 길이 ≈ ${Math.round((v / 100) * laneLen)} px` : pd.unit;
         return (
-          <NumberSlider key={pd.key} label={pd.label} unit={unit} min={pd.min} max={pd.max} step={pd.step} value={v} hint={pd.hint}
+          <NumberSlider key={pd.key} label={pd.label} unit={unit} min={pd.min} max={pd.max} step={pd.step} value={v} help={pd.hint}
             onChange={(nv) => setSpec((s) => ({ ...s, params: { ...s.params, [pd.key]: nv } }), `bl-${pd.key}`)} />
         );
       })}
-      {spec.method === 'manual' && (
-        <div className="note info">아래 그래프에서 각 밴드 양 끝의 동그라미를 끌어 시작·끝 위치와 바닥 높이를 정합니다. 오른쪽 클릭하면 그 점은 자동(골짜기)으로 돌아갑니다.</div>
-      )}
 
       <div className="field" style={{ marginTop: 10 }}>
         <div className="label"><span>적용할 곳</span></div>
@@ -568,9 +545,7 @@ function BandsSection({ gel, data, project }: { gel: Gel; data: ProcessedGel | n
             <button className="btn sm" onClick={() => copyTable(true)} title="이 겔의 모든 레인 밴드를 한 번에 복사"><Icon name="table" size={14} />겔 전체 복사</button>
             {lane.bands.length > 0 && <button className="btn ghost sm" onClick={copyBandsToAll} title="같은 구간을 다른 모든 레인에 복사">구간 → 모든 레인</button>}
           </div>
-          <div className="hint" style={{ marginTop: 6 }}>
-            밴드를 고르면 이미지에서 양 끝 동그라미로 기울기를, 테두리로 위아래 범위를 바꿀 수 있습니다. 밴드 삭제는 <kbd>Delete</kbd>.
-          </div>
+          <div className="hint" style={{ marginTop: 6 }}>밴드 사용법<Help>밴드를 고르면 이미지에서 양 끝 동그라미로 기울기를, 테두리로 위아래 범위를 바꿀 수 있습니다. 밴드 삭제는 <kbd>Delete</kbd>.</Help></div>
         </>
       ) : (
         <div className="hint">레인을 고르면 그 레인의 밴드가 표시됩니다.</div>
@@ -599,15 +574,15 @@ function BandsSection({ gel, data, project }: { gel: Gel; data: ProcessedGel | n
         <button className="btn sm" onClick={() => { const t = newTarget(project.targets); update((d) => { d.targets.push(t); }); setRenaming(t.id); }}><Icon name="plus" size={14} />타깃</button>
         {selBand?.targetId && <button className="btn ghost sm" onClick={() => assignTarget(null)}>지정 해제</button>}
       </div>
-      <div className="hint">밴드를 고른 뒤 타깃을 누르면 같은 높이의 밴드에 한 번에 지정됩니다. 결과 탭에서 타깃별로 모아 봅니다.</div>
+      <div className="hint">타깃 지정 방법<Help>밴드를 고른 뒤 타깃을 누르면 같은 높이의 밴드에 한 번에 지정됩니다. 결과 탭에서 타깃별로 모아 봅니다.</Help></div>
 
       <details className="more" style={{ marginTop: 12 }}>
         <summary>자동 검출 민감도</summary>
         <NumberSlider label="작은 밴드도 찾기" unit="% 가장 큰 밴드" min={0.5} max={50} step={0.5} value={det.minProminencePct}
-          hint="값이 작을수록 흐린 밴드까지 찾습니다."
+          help="값이 작을수록 흐린 밴드까지 찾습니다."
           onChange={(v) => up((g) => { g.detection.minProminencePct = v; }, 'det-prom')} />
         <NumberSlider label="밴드 경계" unit="% 봉우리 높이" min={0} max={50} step={0.5} value={det.edgePct}
-          hint="신호가 이 비율 아래로 떨어지는 곳을 밴드 끝으로 봅니다."
+          help="신호가 이 비율 아래로 떨어지는 곳을 밴드 끝으로 봅니다."
           onChange={(v) => up((g) => { g.detection.edgePct = v; }, 'det-edge')} />
       </details>
 

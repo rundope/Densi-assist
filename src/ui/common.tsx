@@ -55,15 +55,19 @@ export function NumberSlider(props: {
   step: number;
   unit?: string;
   hint?: ReactNode;
+  /** 라벨 옆 ? 아이콘을 누르면 나오는 설명 */
+  help?: ReactNode;
+  /** 라벨 줄 오른쪽에 놓는 요소 (예: '측정에도 적용' 체크) */
+  extra?: ReactNode;
   onChange: (v: number) => void;
   log?: boolean;
 }) {
-  const { label, value, min, max, step, unit, hint, onChange } = props;
+  const { label, value, min, max, step, unit, hint, help, extra, onChange } = props;
   const [text, setText] = useState(String(value));
   useEffect(() => setText(String(roundTo(value, step))), [value, step]);
   return (
     <div className="field">
-      <div className="label"><span>{label}</span>{unit && <span className="hint">{unit}</span>}</div>
+      <div className="label"><span>{label}{help && <Help>{help}</Help>}</span>{extra ?? (unit && <span className="hint">{unit}</span>)}</div>
       <div className="slider-row">
         <input type="range" min={min} max={max} step={step} value={Math.min(max, Math.max(min, value))} onChange={(e) => onChange(Number(e.target.value))} />
         <input
@@ -183,4 +187,44 @@ export function pickFiles(accept: string, multiple: boolean): Promise<File[]> {
     input.onchange = () => resolve(Array.from(input.files ?? []));
     input.click();
   });
+}
+
+/**
+ * 라벨 옆의 동그란 ? 아이콘. 누르면 설명이 떠서, 설명 글을 화면에 계속 펼쳐 두지 않아도 된다.
+ * 설정 패널이 스크롤되어도 잘리지 않도록 화면 기준(fixed)으로 위치를 잡는다.
+ */
+export function Help({ children }: { children: ReactNode }) {
+  const [pos, setPos] = useState<{ x: number; y: number } | null>(null);
+  const btn = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!pos) return;
+    const close = (e: Event) => {
+      if (e instanceof MouseEvent && btn.current?.contains(e.target as Node)) return;
+      if (e instanceof MouseEvent && (e.target as HTMLElement).closest?.('.help-pop')) return;
+      setPos(null);
+    };
+    const key = (e: KeyboardEvent) => { if (e.key === 'Escape') setPos(null); };
+    window.addEventListener('mousedown', close);
+    window.addEventListener('keydown', key);
+    window.addEventListener('resize', close);
+    document.addEventListener('scroll', close, true);
+    return () => {
+      window.removeEventListener('mousedown', close);
+      window.removeEventListener('keydown', key);
+      window.removeEventListener('resize', close);
+      document.removeEventListener('scroll', close, true);
+    };
+  }, [pos]);
+  return (
+    <>
+      <button ref={btn} type="button" className={`help-btn ${pos ? 'on' : ''}`} aria-label="설명 보기" title="설명 보기"
+        onClick={(e) => {
+          e.stopPropagation();
+          if (pos) { setPos(null); return; }
+          const r = e.currentTarget.getBoundingClientRect();
+          setPos({ x: Math.max(8, Math.min(r.left - 8, window.innerWidth - 276)), y: r.bottom + 6 });
+        }}>?</button>
+      {pos && <div className="help-pop" role="note" style={{ left: pos.x, top: pos.y }}>{children}</div>}
+    </>
+  );
 }

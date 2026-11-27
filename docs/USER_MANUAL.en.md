@@ -133,6 +133,8 @@ A suitable option is suggested as soon as the image is added, so you can usually
 > They are kept separate because putting gamma into the calculation would make the ratios between bands differ from the real ratios of the amounts.
 > If you really need it, you can turn on **밝기·감마를 측정값에도 적용** (Apply brightness/gamma to measurements). The results and the Excel file then show that this was used.
 
+> **Smoothing**: a blur (0–3 px) that reduces dotted patterns and noise. With **측정에도 적용** (Apply to measurements, on by default) next to the slider, bands are measured on the smoothed image; turn it off to smooth the display only. Larger values can reduce the area of narrow bands (about 3–6% at 1.5 px on the sample image). The setting is recorded on the Excel "설정" sheet.
+
 ### Image tilt correction
 
 If the whole image is slightly rotated, you can rotate it by −10° to +10° (**기울기 보정**, tilt correction).
