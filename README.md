@@ -62,6 +62,10 @@ npm run dev
 
 처음 열면 "데모 프로젝트로 둘러보기"로 합성 겔 3장이 들어 있는 예제를 볼 수 있습니다.
 
+## 바로 사용하기
+
+설치 없이 브라우저에서: **https://rundope.github.io/densi-assist/** (GitHub Pages, `main`에 push되면 자동 갱신됨. 처음 한 번 저장소 Settings → Pages → Source를 GitHub Actions로 설정해야 함)
+
 ## 배포
 
 빌드 결과는 서버 프로그램이 필요 없는 정적 파일이라 웹서버의 아무 하위 경로에 복사하면 됩니다.

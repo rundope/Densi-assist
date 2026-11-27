@@ -133,8 +133,8 @@ BASE_PATH=/tools/densi-assist/ npm run build
 
 사내 테스트용으로 GitHub Pages를 쓸 수도 있습니다.
 
-1. 저장소 **Settings → Pages → Source: GitHub Actions**
-2. **Actions → Deploy to GitHub Pages → Run workflow**
+1. 저장소 **Settings → Pages → Source: GitHub Actions** (처음 한 번만)
+2. `main`에 push하면 자동으로 배포됨. 수동으로 하려면 **Actions → Deploy to GitHub Pages → Run workflow**
 3. 완료되면 `https://<조직또는계정>.github.io/densi-assist/` 에서 열립니다.
 
 > 비공개 저장소의 Pages는 GitHub 유료 요금제가 필요하고, 조직 설정에 따라 막혀 있을 수 있습니다.
