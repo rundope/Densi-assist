@@ -89,3 +89,13 @@ export function migrateProject(p: Project): Project {
   }
   return p;
 }
+
+/** 레인 크기를 같게: 기준 레인의 폭·위·아래 끝을 다른 모든 레인에 복사한다 (가로 위치 cx는 그대로) */
+export function syncLaneBoxes(lanes: Lane[], src: Lane) {
+  for (const l of lanes) {
+    if (l === src || l.id === src.id) continue;
+    l.width = src.width;
+    l.top = src.top;
+    l.bottom = src.bottom;
+  }
+}

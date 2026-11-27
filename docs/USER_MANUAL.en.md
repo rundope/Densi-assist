@@ -64,9 +64,9 @@ Fastest route: **add images → ② 레인 → 레인 검출 (Auto) → ③ 밴�
 ├───────────────────┬──────────────────────────────────────────────────────┤
 │                   │ [▢][▦]                                               │
 │                   │ ──────────────────────────────────────────────────── │
-│        H          │                                              [ E ]   │
+│        H          │                                                      │
 │   settings panel  │              image with lanes and bands              │
-│                   │                                              [ F ]   │
+│                   │                                              [ E ]   │
 │                   │ ──────────────────────────────────────────────────── │
 │                   │              G  (profile graph)                      │
 └───────────────────┴──────────────────────────────────────────────────────┘
@@ -79,8 +79,7 @@ Fastest route: **add images → ② 레인 → 레인 검출 (Auto) → ③ 밴�
 | **C** Image list | **이미지 N** | Images you added. Click one to open it. Double-click a name to rename it |
 | **D** Step bar | **1 이미지 준비 › 2 레인 › 3 밴드 › 4 결과** | Prepare image › Lane › Band › Results. Click a large step or the blue **다음** (Next) button to move on. The current step is blue, finished steps get a green check, and a **지금 할 일** (To do now) line tells you what to do. Panel H opens that step's items |
 | — Image view | | Lanes (magenta, blue when selected) and bands (orange) are drawn on the image |
-| **E** Original view | **원본 이미지 보기** | Top right of the image. Hides lanes and bands so you can compare with the original (key **O**) |
-| **F** Zoom buttons | | Bottom right of the image: zoom out, zoom in, fit to screen, 1:1 actual size |
+| **E** Zoom buttons | | Bottom right of the image: zoom out, zoom in, fit to screen, 1:1 actual size. The mouse wheel also zooms. To move a zoomed-in image, **hold the right mouse button and drag** (a yellow tip appears the first time you zoom in) |
 | **G** Profile graph | | Intensity along the selected lane from top to bottom. One peak = one band |
 | **H** Settings panel | | Click a heading to open or close it. All are closed at first |
 | ↶ ↷ | | Undo / redo (Ctrl+Z / Ctrl+Shift+Z) |
@@ -152,12 +151,13 @@ If the whole image is slightly rotated, you can rotate it by −10° to +10° (*
 
 ## 5. ② Lane — set up lanes
 
-Click **② 레인** (Lane) at the top. Two buttons appear next to it.
+Click **② 레인** (Lane) at the top. The top of the left panel shows **three numbered steps** (1 set lanes → 2 adjust position and width → 3 enter sample names), and the yellow Spoonbill speech bubble says the same. There are three ways to set lanes.
 
-| Button | What it does |
+| Method | What it does |
 |---|---|
-| **레인 그리기** (Draw lanes) | Drag on an empty part of the image to draw a lane. A single click adds a lane of the same size as the selected lane at that spot |
-| **레인 검출 (Auto)** (Detect lanes) | Finds lanes automatically, including lanes that touch each other and size-marker (ladder) lanes |
+| **끌어서 그리기** (Drag to draw) | Drag on an empty part of the image to draw a lane of that size |
+| **클릭해서 추가** (Click to add) | A single click on an empty spot adds a lane of the same size as the selected lane (or the last lane) at that spot |
+| **레인 검출 (Auto)** (Detect lanes) | Finds lanes automatically, including lanes that touch each other and size-marker (ladder) lanes. The button is in the left panel and in the toolbar above the image |
 
 ### Moving and resizing lanes
 
@@ -173,7 +173,7 @@ You can do this right away without switching tools.
 | Item on screen | Description |
 |---|---|
 | **레인 폭** (Lane width) | Adjust the width with the slider |
-| **모든 레인 크기를 같게** (Make all lanes the same size) | When on, changing the width or height of one lane changes all lanes (recommended) |
+| **모든 레인 크기를 같게** (Make all lanes the same size) | When on, all lanes always share the same **width and top/bottom ends**. Moving one lane up or down or dragging its border updates the others too. Turning it on matches all lanes to the selected lane (recommended) |
 | **양옆 가장자리 제외** (Exclude side edges) | Measures only the middle of the lane, leaving out a percentage at both sides. Useful when band ends are smeared or curved (shown as dotted lines on the image) |
 | **레인 폭 방향 값 합치기** (Combine values across lane width) | **평균** (Mean): average of the pixels in each row (usual) / **중앙값** (Median): less affected by dust and spots |
 | **샘플 이름** (Sample name) | Type in the table, or use **엑셀에서 붙여넣기** (Paste from Excel) to paste a whole column at once (from the leftmost lane) |
@@ -373,10 +373,9 @@ In the **프로젝트 ▾** (Project) menu:
 | **Esc** | Back to ① Select |
 | **← →** | Previous / next lane |
 | **Delete** | Delete the selected band (or the lane if no band is selected) |
-| **O** | Toggle the original image view |
 | **F** | Fit the image to the screen |
 | Mouse wheel | Zoom in / out |
-| **Space** + drag, middle/right mouse button drag | Pan |
+| Right (or middle) mouse button drag, **Space** + drag | Move a zoomed-in image |
 | **Shift** + drag a lane | Move horizontally only |
 | **Ctrl+Z** / **Ctrl+Shift+Z** (Ctrl+Y) | Undo / redo |
 | **1** / **2** | Analyze / Results tab |
@@ -391,8 +390,7 @@ In the **프로젝트 ▾** (Project) menu:
 4. **Use one baseline method.** For images you compare, use the same method with **모든 겔에 같은 설정**.
 5. **Make the ball big enough.** If the Rolling ball size is smaller than the bands, the bands get cut. Use **전체 레인 비교** to check that the baseline runs under the bands.
 6. **Match the tilt of slanted bands.** The correct tilt is the one that makes the peak sharpest.
-7. **Toggle the original image (O)** to hide lanes and bands and check positions against the original.
-8. **Name samples accurately.** Only lanes with the same name are grouped in the results.
+7. **Name samples accurately.** Only lanes with the same name are grouped in the results.
 
 ---
 
@@ -409,7 +407,7 @@ A. The browser blocked some features of a page opened as a file. Open it with th
 A. That is expected. Gamma and brightness only affect the display. See [section 4](#4--select--check-the-image).
 
 **Q. 레인 검출 (Auto) finds the wrong lanes.**
-A. First check that the **band color** setting in ① Image is correct. If it is still off, drag the lanes into place or draw them yourself. For gels with almost no gap between lanes, draw one lane with **레인 그리기**, then **click once** at each neighboring position to add lanes of the same size quickly.
+A. First check that the **band color** setting in ① Image is correct. If it is still off, drag the lanes into place or draw them yourself. For gels with almost no gap between lanes, draw one lane by dragging, then **click once** at each neighboring position to add lanes of the same size quickly.
 
 **Q. Too many (or too few) bands are detected.**
 A. In ⑤ Bands · Targets, raise the **자동 검출 민감도 → 작은 밴드도 찾기** (Auto-detection sensitivity → Also find small bands) value to find fewer, or lower it to find more. Select any unwanted band and press **Delete**.

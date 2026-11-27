@@ -3,13 +3,26 @@ import type { Gel, Lane } from '../../core/types';
 import { laneColumns } from '../../core/profile';
 import type { ProcessedGel } from '../../engine/engine';
 import type { GelStatus } from '../../engine/engine';
-import { newBand, newLane } from '../../state/project';
+import { newBand, newLane, syncLaneBoxes } from '../../state/project';
 import { findGel, useApp } from '../../state/store';
 import { renderToImageData, sourceFor, fmt } from '../render';
 import { Icon, useElementSize } from '../common';
 import { BAND_DEFAULT_COLOR, DRAFT, LANE_EXCLUDED, LANE_NORMAL, LANE_SELECTED } from '../colors';
 
 interface View { scale: number; tx: number; ty: number }
+
+const PAN_LEARNED_KEY = 'densi:pan-learned';
+
+/** 오른쪽 버튼이 강조된 마우스 그림 */
+function MouseIcon() {
+  return (
+    <svg width="30" height="40" viewBox="0 0 30 40" aria-hidden>
+      <rect x="2" y="2" width="26" height="36" rx="13" fill="#fff" stroke="#1b2a4a" strokeWidth="2" />
+      <path d="M15 2 V17 H28 V15 A13 13 0 0 0 15 2 Z" fill="#f5b400" stroke="#1b2a4a" strokeWidth="2" strokeLinejoin="round" />
+      <line x1="2" y1="17" x2="15" y2="17" stroke="#1b2a4a" strokeWidth="2" />
+    </svg>
+  );
+}
 
 type Drag =
   | { kind: 'pan'; sx: number; sy: number; tx: number; ty: number }
@@ -33,8 +46,8 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
   const [drag, setDrag] = useState<Drag | null>(null);
   const [hover, setHover] = useState<{ x: number; y: number } | null>(null);
   const [space, setSpace] = useState(false);
-  // 원본 이미지 보기: 레인·밴드 표시를 숨기고 보정 전 이미지를 보여줘 비교하기 쉽게 한다
-  const [showOriginal, setShowOriginal] = useState(false);
+  // 확대했을 때 "오른쪽 버튼으로 화면 이동" 안내. 한 번 이동해 보면 이 브라우저 창에서는 다시 띄우지 않는다
+  const [panLearned, setPanLearned] = useState(() => sessionStorage.getItem(PAN_LEARNED_KEY) === '1');
   const imageDataRef = useRef<ImageData | undefined>(undefined);
 
   const fit = useCallback(() => {
@@ -59,20 +72,18 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
     if (!c || !data) return;
     const id = requestAnimationFrame(() => {
       if (c.width !== data.width || c.height !== data.height) { c.width = data.width; c.height = data.height; }
-      const img = renderToImageData(sourceFor(gel, data, showOriginal ? 'original' : 'corrected'), imageDataRef.current);
+      const img = renderToImageData(sourceFor(gel, data, 'corrected'), imageDataRef.current);
       imageDataRef.current = img;
       c.getContext('2d')!.putImageData(img, 0, 0);
     });
     return () => cancelAnimationFrame(id);
-  }, [data, gel.display, gel.preprocess.polarity, showOriginal]);
+  }, [data, gel.display, gel.preprocess.polarity]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
       const typing = e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement || e.target instanceof HTMLSelectElement;
       if (typing) return;
       if (e.code === 'Space') { setSpace(true); e.preventDefault(); }
-      // O: 원본 이미지 보기 켜고 끄기
-      if (e.key === 'o' && !e.ctrlKey && !e.metaKey && !e.altKey) setShowOriginal((v) => !v);
     };
     const up = (e: KeyboardEvent) => { if (e.code === 'Space') setSpace(false); };
     window.addEventListener('keydown', down);
@@ -113,7 +124,7 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
     if (!data) return;
     // 이미지 위에 떠 있는 버튼·안내창은 그대로 클릭되게 둔다
     // (여기서 포인터를 캡처해 버리면 그 위의 버튼이 클릭 이벤트를 받지 못한다)
-    if ((e.target as Element).closest('.banner, .hud, .view-controls, .orig-toggle')) return;
+    if ((e.target as Element).closest('.hud, .view-controls, .pan-hint')) return;
     e.preventDefault(); // 드래그 중 글자 선택이 시작되지 않게
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     const p = toImage(e);
@@ -181,6 +192,10 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
     switch (drag.kind) {
       case 'pan':
         setView((v) => ({ ...v, tx: drag.tx + e.clientX - drag.sx, ty: drag.ty + e.clientY - drag.sy }));
+        if (!panLearned && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 30) {
+          sessionStorage.setItem(PAN_LEARNED_KEY, '1');
+          setPanLearned(true);
+        }
         break;
       case 'move-lane': {
         const dx = p.x - drag.ix, dy = p.y - drag.iy;
@@ -195,6 +210,9 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
           const h = drag.orig.bottom - drag.orig.top;
           l.top = Math.max(0, Math.min(data.height - h, drag.orig.top + oy));
           l.bottom = l.top + h;
+          // 크기를 같게 할 때는 위아래 위치도 함께 움직여 모든 레인의 위·아래 끝을 맞춘다
+          const g = findGel(d, gel.id);
+          if (g && ui.syncLaneSize) syncLaneBoxes(g.lanes, l);
         }, `lane-move-${drag.laneId}`);
         break;
       }
@@ -203,23 +221,23 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
         update((d) => {
           const g = findGel(d, gel.id);
           if (!g) return;
-          const targetsL = ui.syncLaneSize ? g.lanes : g.lanes.filter((x) => x.id === drag.laneId);
+          const self = g.lanes.find((x) => x.id === drag.laneId);
+          if (!self) return;
           if (drag.edge === 'l' || drag.edge === 'r') {
             // 끌고 있는 쪽 가장자리만 움직이고 반대쪽은 고정
             const left0 = o.cx - o.width / 2, right0 = o.cx + o.width / 2;
             const left = drag.edge === 'l' ? Math.min(clampX(p.x), right0 - 4) : left0;
             const right = drag.edge === 'r' ? Math.max(clampX(p.x), left0 + 4) : right0;
-            const width = Math.round(right - left);
-            const self = g.lanes.find((x) => x.id === drag.laneId);
-            if (self) { self.cx = (left + right) / 2; self.width = width; }
-            for (const l of targetsL) if (l.id !== drag.laneId) l.width = width;
+            self.cx = (left + right) / 2;
+            self.width = Math.round(right - left);
           } else if (drag.edge === 't') {
-            const top = Math.round(Math.min(clampY(p.y), o.bottom - 8));
-            for (const l of targetsL) l.top = Math.min(top, l.bottom - 8);
+            self.top = Math.round(Math.min(clampY(p.y), o.bottom - 8));
           } else {
-            const bottom = Math.round(Math.max(clampY(p.y), o.top + 8));
-            for (const l of targetsL) l.bottom = Math.max(bottom, l.top + 8);
+            self.bottom = Math.round(Math.max(clampY(p.y), o.top + 8));
           }
+          // 크기를 같게: 폭뿐 아니라 위·아래 끝도 끌고 있는 레인에 맞춘다
+          // (예전에는 끈 쪽 끝만 맞춰서, 위아래로 옮긴 레인이 있으면 높이가 서로 달라졌다)
+          if (ui.syncLaneSize) syncLaneBoxes(g.lanes, self);
         }, `lane-edge-${drag.edge}`);
         break;
       }
@@ -289,10 +307,8 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
         const g = findGel(d, gel.id)!;
         const nextIdx = g.lanes.filter((l) => l.cx < lane.cx).length;
         lane.sample = `S${g.lanes.length + 1}`;
-        if (ui.syncLaneSize && g.lanes.length && !(w * view.scale < 6 && h * view.scale < 6)) {
-          for (const l of g.lanes) { l.width = lane.width; l.top = lane.top; l.bottom = lane.bottom; }
-        }
         g.lanes.splice(nextIdx, 0, lane);
+        if (ui.syncLaneSize) syncLaneBoxes(g.lanes, lane);
       });
       selectLane(lane.id);
     } else if (drag.kind === 'new-band') {
@@ -317,6 +333,9 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
   };
 
   const sw = (px: number) => px / view.scale;
+  // 화면에 맞춘 배율보다 크게 확대했는지 (화면 이동 안내를 띄울 때 씀)
+  const fitScale = data && size.width ? Math.min((size.width - 56) / data.width, (size.height - 56) / data.height) : 1;
+  const zoomed = !!data && view.scale > fitScale * 1.15;
   const selectedLane = gel.lanes.find((l) => l.id === ui.selectedLaneId);
   const hoverRaw = hover && data ? data.raw[Math.floor(hover.y) * data.width + Math.floor(hover.x)] : null;
   const hoverSig = hover && data ? data.signal[Math.floor(hover.y) * data.width + Math.floor(hover.x)] : null;
@@ -341,7 +360,7 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
             className="overlay"
             width={data.width}
             height={data.height}
-            style={{ transform: `translate(${view.tx}px, ${view.ty}px) scale(${view.scale})`, display: showOriginal ? 'none' : undefined }}
+            style={{ transform: `translate(${view.tx}px, ${view.ty}px) scale(${view.scale})` }}
           >
             {gel.lanes.map((lane, i) => {
               const sel = lane.id === ui.selectedLaneId;
@@ -443,21 +462,9 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
       )}
       {status.state === 'error' && <div className="center-msg"><div className="note err">{status.message}</div></div>}
 
-      {ui.tool === 'lane' && (
-        <div className="banner" title="빈 곳을 드래그하면 새 레인을 그리고, 그냥 클릭하면 선택한 레인과 같은 크기로 추가합니다. 이미 있는 레인은 몸통을 끌어 옮기고 가장자리를 끌어 크기를 바꿉니다">
-          <span>빈 곳 드래그: 새 레인 · 레인 끌기: 이동 · 가장자리: 크기</span>
-          <button className="btn sm" onClick={() => useApp.getState().setTool('select')}>완료</button>
-        </div>
-      )}
-      {ui.tool === 'band' && (
-        <div className="banner" title="이미지: 레인 안에서 위아래로 드래그하면 밴드가 됩니다. 아래 그래프: 좌우로 드래그해도 밴드를 만들거나 경계를 옮길 수 있습니다">
-          <span>이미지: 위아래 드래그 · 아래 그래프: 좌우 드래그 · 밴드 끌기: 이동</span>
-          <button className="btn sm" onClick={() => useApp.getState().setTool('select')}>완료</button>
-        </div>
-      )}
-
       <div className="hud">
         <div className="hud-chip">{Math.round(view.scale * 100)}%</div>
+        {zoomed && <div className="hud-chip pan">화면 이동: 오른쪽 버튼 끌기</div>}
         {hover && hoverRaw != null && (
           <div className="hud-chip">
             x {Math.floor(hover.x)}, y {Math.floor(hover.y)} · 원본 {fmt(hoverRaw, 5)} · 신호 {fmt(hoverSig, 4)}
@@ -465,11 +472,16 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
         )}
         {selectedLane && <div className="hud-chip">선택: {selectedLane.sample || '레인'} · 폭 {Math.round(selectedLane.width)}px</div>}
       </div>
-      {data && (
-        <label className={`orig-toggle ${showOriginal ? 'on' : ''}`} title="레인·밴드 표시를 숨기고 원본 이미지를 봅니다 (O)">
-          <input type="checkbox" checked={showOriginal} onChange={(e) => setShowOriginal(e.target.checked)} />
-          원본 이미지 보기
-        </label>
+      {zoomed && !panLearned && !drag && (
+        <div className="pan-hint" role="status">
+          <MouseIcon />
+          <div>
+            <b>확대한 화면을 옮기려면</b>
+            <span>마우스 <em>오른쪽 버튼</em>을 누른 채 끄세요</span>
+            <small>왼쪽 버튼으로 끌면 {ui.tool === 'band' ? '밴드가' : '레인이'} 그려집니다 · 휠: 확대/축소</small>
+          </div>
+          <button className="btn sm" onClick={() => { sessionStorage.setItem(PAN_LEARNED_KEY, '1'); setPanLearned(true); }}>알겠어요</button>
+        </div>
       )}
       <div className="view-controls">
         <button className="btn sm icon" onClick={() => zoomBy(1 / 1.25)} title="축소"><Icon name="zoomout" size={14} /></button>
