@@ -53,6 +53,8 @@ export interface DisplaySettings {
    * true로 두면 신호와 값이 비례하지 않게 되므로 결과에 경고가 붙는다.
    */
   applyToData: boolean;
+  /** 화면만 부드럽게 보이게 하는 가우시안 블러 강도(픽셀). 0이면 끔. 표시 전용이며 측정값에는 영향이 없다. */
+  smooth: number;
 }
 
 export type BaselineMethod =

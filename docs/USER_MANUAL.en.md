@@ -55,17 +55,19 @@ Fastest route: **add images → ② 레인 → 레인 검출 (Auto) → ③ 밴�
 ## 2. Screen layout
 
 ```
-┌──────────────────────────────────────────────────────────────────┐
-│ Densi-assist  [project name]   [ A ]          ↶ ↷   [ B ]   ?    │
-├──────────┬────────────────────────────────────────┬──────────────┤
-│          │ [▢][▦]   D                             │              │
-│    C     │ ────────────────────────────────────── │      H       │
-│          │                                  [ E ] │              │
-│          │        image with lanes and bands      │              │
-│          │                                  [ F ] │              │
-│          │ ────────────────────────────────────── │              │
-│          │        G  (profile graph)              │              │
-└──────────┴────────────────────────────────────────┴──────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│ Densi-assist  [project]    [ A ]                 ↶ ↷   [ B ]   ?         │
+├──────────────────────────────────────────────────────────────────────────┤
+│ C  image strip:  [thumb] [thumb] [thumb] ...                [+]          │
+├───────────────────┬──────────────────────────────────────────────────────┤
+│                   │ [▢][▦]   D                                           │
+│                   │ ──────────────────────────────────────────────────── │
+│        H          │                                              [ E ]   │
+│   settings panel  │              image with lanes and bands              │
+│                   │                                              [ F ]   │
+│                   │ ──────────────────────────────────────────────────── │
+│                   │              G  (profile graph)                      │
+└───────────────────┴──────────────────────────────────────────────────────┘
 ```
 
 | Area | On screen | Description |
@@ -90,7 +92,7 @@ The settings panel (H) is grouped as: **1. 선택** (Select) → **① 이미지
 ## 3. Adding images
 
 **Method 1.** On the start screen, drag files onto the dashed box, or click the box to choose files.
-**Method 2.** While working, click **+ 추가** (Add) above the image list, or drop files anywhere in the window.
+**Method 2.** While working, click **+ 추가** (Add) in the image strip at the top, or drop files anywhere in the window.
 **Method 3.** Paste a copied image (screen capture, copied from another program, or an image file copied in Explorer) with **Ctrl+V** in the app window. Screenshots are usually 8-bit, so original TIFF files give more accurate quantification. Instead of the keyboard, you can click the **복사한 이미지 붙여넣기** (Paste copied image) button on the start screen, or the same item in the project menu. If the browser asks for clipboard access, choose Allow.
 
 - You can add several images at once.
@@ -108,7 +110,7 @@ The settings panel (H) is grouped as: **1. 선택** (Select) → **① 이미지
 
 ## 4. ① Select — check the image
 
-Click **① 선택** (Select) at the top. The **① 이미지** (Image) settings open on the right.
+Click **① 선택** (Select) at the top. The **① 이미지** (Image) settings open on the left.
 
 ### Band color
 
@@ -152,10 +154,10 @@ You can do this right away without switching tools.
 
 - **Move**: drag the inside of a lane. Hold **Shift** while dragging to move horizontally only.
 - **Resize**: hover over the top, bottom, left or right edge of a lane until the cursor changes to an arrow, then drag. Only that edge moves.
-- **Delete**: select the lane and press **Delete**, or use the trash icon in the ③ Lanes table on the right.
+- **Delete**: select the lane and press **Delete**, or use the trash icon in the ③ Lanes table on the left.
 - **Next/previous lane**: **← →** keys.
 
-### ③ 레인 (Lanes) settings (right panel)
+### ③ 레인 (Lanes) settings (left panel)
 
 | Item on screen | Description |
 |---|---|
@@ -194,7 +196,7 @@ Click **③ 밴드** (Band) at the top. Two buttons appear next to it.
 | Move a band | Drag the band up or down on the image |
 | Change a band's range | Drag its top or bottom edge on the image, or drag the vertical lines on the graph left or right |
 | **Band tilt** | Select a band and **two circles** appear above its ends. Drag the left or right circle up or down to slant the band |
-| Enter tilt as a number | The **기울기** (Tilt) column in the ⑤ Bands · Targets table on the right (height difference between the left and right ends, in px) |
+| Enter tilt as a number | The **기울기** (Tilt) column in the ⑤ Bands · Targets table on the left (height difference between the left and right ends, in px) |
 | Delete a band | Select it and press **Delete** |
 
 > **Tilt is set for each band separately.** When bands run at a slant on an SDS-PAGE gel, matching the tilt makes the measurement follow that direction, so peaks do not smear and results are more accurate. The black line in the graph below changes to match the tilt.
@@ -216,7 +218,7 @@ Click **③ 밴드** (Band) at the top. Two buttons appear next to it.
 - Hover over the graph to see position, profile, baseline and signal values at the top right.
 - **전체 레인 비교** (Compare all lanes): shows small graphs of every lane side by side. Useful for checking that the baseline is drawn similarly in each lane.
 
-### ⑤ 밴드 · 타깃 (Bands · Targets, right panel)
+### ⑤ 밴드 · 타깃 (Bands · Targets, left panel)
 
 - Band table for the selected lane: **#**, **기울기** (Tilt), **면적** (Area), **% 레인** (% of lane)
 - **표 복사** (Copy table): copies this lane's table → paste into Excel
@@ -235,7 +237,7 @@ The **baseline** is the **floor line** under the bands in the graph. The area ab
 > - ② Background removal: removes stains and shading from the **whole image** (optional).
 > - ④ Baseline: sets the floor line in the graph **for each lane** (always used).
 
-Open **④ 베이스라인** (Baseline) on the right and choose a method (**방법**).
+Open **④ 베이스라인** (Baseline) on the left and choose a method (**방법**).
 
 | Method on screen | Description | When |
 |---|---|---|

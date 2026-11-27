@@ -1,5 +1,6 @@
 import type { Gel } from '../core/types';
 import type { ProcessedGel } from '../engine/engine';
+import { gaussianBlur } from '../core/image/preprocess';
 
 const LUT_SIZE = 4096;
 
@@ -23,18 +24,30 @@ export interface RenderSource {
   invert: boolean;
 }
 
+/** 블러 결과는 (원본 배열, 강도)별로 한 번만 계산한다. 슬라이더를 움직여도 이전 결과는 배열이 사라지면 함께 정리된다. */
+const blurCache = new WeakMap<Float32Array, { sigma: number; out: Float32Array }>();
+function smoothed(values: Float32Array, w: number, h: number, sigma: number): Float32Array {
+  if (!(sigma > 0)) return values;
+  const hit = blurCache.get(values);
+  if (hit && hit.sigma === sigma) return hit.out;
+  const out = gaussianBlur(values, w, h, sigma);
+  blurCache.set(values, { sigma, out });
+  return out;
+}
+
 export function sourceFor(gel: Gel, data: ProcessedGel): RenderSource {
   const d = gel.display;
+  const sigma = d.smooth ?? 0;
   if (d.showCorrected) {
     const [lo, hi] = data.signalRange;
     return {
-      width: data.width, height: data.height, values: data.signal,
+      width: data.width, height: data.height, values: smoothed(data.signal, data.width, data.height, sigma),
       min: Math.min(lo, 0), max: hi > lo ? hi : lo + 1, gamma: d.gamma,
       invert: gel.preprocess.polarity !== 'light-bands',
     };
   }
   return {
-    width: data.width, height: data.height, values: data.raw,
+    width: data.width, height: data.height, values: smoothed(data.raw, data.width, data.height, sigma),
     min: d.min, max: d.max > d.min ? d.max : d.min + 1, gamma: d.gamma, invert: false,
   };
 }

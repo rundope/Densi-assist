@@ -194,7 +194,7 @@ function HelpModal({ onClose }: { onClose: () => void }) {
   return (
     <Modal title="사용 방법" onClose={onClose} width={680}>
       <p style={{ margin: 0, color: 'var(--text-2)' }}>
-        위쪽 도구는 작업 순서대로 <b>1. 선택 → 2. 레인 → 3. 밴드</b>입니다. 도구를 누르면 오른쪽 패널에서 그 단계에 필요한 항목만 펼쳐집니다.
+        위쪽 도구는 작업 순서대로 <b>1. 선택 → 2. 레인 → 3. 밴드</b>입니다. 도구를 누르면 왼쪽 패널에서 그 단계에 필요한 항목만 펼쳐집니다.
       </p>
       <ol style={{ margin: 0, paddingLeft: 18, display: 'grid', gap: 6 }}>
         <li><b>이미지 올리기</b>: 원본 TIFF(16-bit 권장)를 여러 장 한 번에 끌어다 놓거나, 복사한 이미지를 <b>Ctrl+V</b>로 붙여넣습니다. (캡처 이미지는 8-bit라 정량 정확도가 원본보다 떨어질 수 있음)</li>
