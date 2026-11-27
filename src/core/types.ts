@@ -33,12 +33,16 @@ export interface Preprocess {
   grayMode: GrayMode;
 }
 
-export type Background2DMethod = 'none' | 'rolling-ball' | 'paraboloid';
+export type Background2DMethod = 'none' | 'rolling-ball' | 'paraboloid' | 'constant' | 'flatten';
 
 export interface Background2D {
   method: Background2DMethod;
   radius: number;
   presmooth: boolean;
+  /** 추정한 배경을 얼마나 뺄지(0~100%). 100이면 모두 뺀다. */
+  strength: number;
+  /** 'constant'일 때: 신호가 낮은 쪽 몇 %의 값을 배경으로 볼지 */
+  constantPct: number;
 }
 
 export interface DisplaySettings {
