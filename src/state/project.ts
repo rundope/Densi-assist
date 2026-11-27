@@ -29,7 +29,7 @@ export function newGel(init: Pick<Gel, 'name' | 'fileName' | 'imageKey' | 'sha25
     page: 0,
     preprocess: { polarity: 'dark-bands', rotate90: 0, rotateFine: 0, flipH: false, grayMode: 'luminance' },
     background: { method: 'none', radius: 50, presmooth: true },
-    display: { min: 0, max: init.bitDepth === 8 ? 255 : 65535, gamma: 1, showCorrected: false, applyToData: false },
+    display: { min: 0, max: init.bitDepth === 8 ? 255 : 65535, gamma: 1, showCorrected: false, applyToData: false, smooth: 0 },
     profile: { aggregate: 'mean', edgeTrimPct: 10 },
     baseline: makeSpec('rolling-ball'),
     detection: { minProminencePct: 6, edgePct: 3, smoothing: 1.5 },
@@ -81,6 +81,7 @@ export function migrateProject(p: Project): Project {
   p.calibrations ??= [];
   for (const g of p.gels) {
     g.display.applyToData ??= false;
+    g.display.smooth ??= 0;
     for (const l of g.lanes) for (const b of l.bands) b.tilt ??= 0;
   }
   return p;

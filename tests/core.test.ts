@@ -5,7 +5,7 @@ import { fitCalibration } from '../src/core/calibration';
 import { differenceGram, solveWhittaker } from '../src/core/math';
 import { estimateBackground2D } from '../src/core/image/background2d';
 import { synthesizeGel } from '../src/core/synthetic';
-import { suggestPolarity, toGray, toSignal } from '../src/core/image/preprocess';
+import { gaussianBlur, suggestPolarity, toGray, toSignal } from '../src/core/image/preprocess';
 import { decodeImage, sha256 } from '../src/core/io/decode';
 import { existsSync, readFileSync } from 'node:fs';
 import { extractProfile } from '../src/core/profile';
@@ -314,5 +314,29 @@ describe('summary normalization', () => {
     const c = s.cells.find((q) => q.targetId === 'T')!;
     expect(c.normalized!.method).toBe('sample');
     expect(c.normalized!.mean).toBeCloseTo(5);
+  });
+});
+
+describe('화면용 가우시안 블러', () => {
+  const w = 40, h = 30;
+  it('sigma 0이면 원본 배열을 그대로 돌려준다', () => {
+    const v = new Float32Array(w * h).fill(5);
+    expect(gaussianBlur(v, w, h, 0)).toBe(v);
+  });
+  it('균일한 이미지는 그대로이고, 전체 합(총 신호량)이 보존된다', () => {
+    const flat = new Float32Array(w * h).fill(7);
+    const o = gaussianBlur(flat, w, h, 1.5);
+    expect(Math.max(...Array.from(o).map((x) => Math.abs(x - 7)))).toBeLessThan(1e-4);
+    const v = new Float32Array(w * h);
+    v[15 * w + 20] = 1000; // 가장자리에서 멀리 떨어진 점 하나
+    const b = gaussianBlur(v, w, h, 1.5);
+    expect(b.reduce((a, x) => a + x, 0)).toBeCloseTo(1000, 1);
+  });
+  it('한 픽셀 단위 점무늬(디더링)를 크게 줄인다', () => {
+    const v = new Float32Array(w * h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) v[y * w + x] = 100 + ((x + y) % 2 ? 8 : -8);
+    const b = gaussianBlur(v, w, h, 1.5);
+    const sd = (a: Float32Array) => { const m = a.reduce((s2, x) => s2 + x, 0) / a.length; return Math.sqrt(a.reduce((s2, x) => s2 + (x - m) ** 2, 0) / a.length); };
+    expect(sd(b)).toBeLessThan(sd(v) * 0.1);
   });
 });

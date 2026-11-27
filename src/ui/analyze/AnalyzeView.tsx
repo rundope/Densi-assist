@@ -121,7 +121,7 @@ function GelSidebar() {
     <aside className="sidebar">
       <div className="sidebar-head">
         <h3>이미지 {gels.length}</h3>
-        <button className="btn sm" onClick={async () => addImageFiles(await pickFiles(IMAGE_ACCEPT, true))} title="이미지 추가 (여러 장 가능)"><Icon name="plus" size={14} />추가</button>
+        <button className="btn sm" onClick={async () => addImageFiles(await pickFiles(IMAGE_ACCEPT, true))} title="이미지 추가 (여러 장 가능). 창 어디에나 끌어다 놓거나 Ctrl+V로 붙여넣어도 추가됩니다"><Icon name="plus" size={14} />추가</button>
       </div>
       <div className="gel-list">
         {gels.map((g) => {
@@ -156,9 +156,6 @@ function GelSidebar() {
             </div>
           );
         })}
-      </div>
-      <div className="sidebar-foot">
-        <div className="hint">이미지를 창 어디에나 끌어다 놓아도 추가됩니다.</div>
       </div>
     </aside>
   );

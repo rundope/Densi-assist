@@ -111,6 +111,7 @@ function ImageSection({ gel, data }: { gel: Gel; data: ProcessedGel | null }) {
           <option value="light-bands">어두운 배경에 밝은 밴드 (형광 등)</option>
           <option value="dark-bands-od">어두운 밴드, 광학 밀도(OD)로 변환</option>
         </select>
+        <div className="hint">측정에서 어느 쪽을 신호로 볼지 정합니다. 위의 이미지 화면은 바뀌지 않고, 아래 그래프와 측정값에 반영됩니다. (바뀐 모습은 &quot;배경 제거된 이미지로 보기&quot;를 켜면 볼 수 있습니다.)</div>
         {p.polarity === 'dark-bands-od' && <div className="hint">필름·투과광 스캔에서 흡광도에 비례하는 값을 얻을 때 씁니다.</div>}
       </div>
 
@@ -124,6 +125,7 @@ function ImageSection({ gel, data }: { gel: Gel; data: ProcessedGel | null }) {
             <option value="green">초록 채널</option>
             <option value="blue">파랑 채널</option>
           </select>
+          <div className="hint">컬러 이미지를 흑백으로 바꾸는 방법입니다. 이미지가 이미 흑백(색 없음)이면 무엇을 골라도 결과가 같습니다.</div>
         </div>
       )}
 
@@ -134,6 +136,11 @@ function ImageSection({ gel, data }: { gel: Gel; data: ProcessedGel | null }) {
       <Histogram gel={gel} data={data} />
       <NumberSlider label="감마" min={0.1} max={4} step={0.05} value={d.gamma}
         onChange={(v) => up((g) => { g.display.gamma = v; }, 'gamma')} />
+      <NumberSlider label="화면 부드럽게 (표시만)" unit="px" min={0} max={3} step={0.1} value={d.smooth ?? 0}
+        onChange={(v) => up((g) => { g.display.smooth = v; }, 'smooth')} />
+      <div className="hint" style={{ marginBottom: 8 }}>
+        점무늬·잡음이 있는 이미지를 화면에서만 부드럽게 보여줍니다. 측정값은 바뀌지 않습니다.
+      </div>
       <div className="btn-row" style={{ marginBottom: 8 }}>
         <button className="btn sm" disabled={!data} onClick={() => {
           if (!data) return;

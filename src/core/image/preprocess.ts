@@ -163,3 +163,40 @@ export function histogram(data: Float32Array, min: number, max: number, bins = 2
   }
   return h;
 }
+
+/**
+ * 분리형 가우시안 블러(가장자리는 가장 가까운 값으로 채움). 화면 표시용이며 정량 경로에서는 쓰지 않는다.
+ * 디더링(점무늬)·잡음처럼 한 픽셀 단위로 흔들리는 성분을 줄이는 저역통과 필터다.
+ */
+export function gaussianBlur(values: Float32Array, width: number, height: number, sigma: number): Float32Array {
+  if (!(sigma > 0)) return values;
+  const r = Math.max(1, Math.ceil(sigma * 3));
+  const k = new Float32Array(2 * r + 1);
+  let sum = 0;
+  for (let i = -r; i <= r; i++) { const v = Math.exp(-(i * i) / (2 * sigma * sigma)); k[i + r] = v; sum += v; }
+  for (let i = 0; i < k.length; i++) k[i] /= sum;
+  const tmp = new Float32Array(values.length);
+  for (let y = 0; y < height; y++) {
+    const row = y * width;
+    for (let x = 0; x < width; x++) {
+      let acc = 0;
+      for (let i = -r; i <= r; i++) {
+        const xx = x + i < 0 ? 0 : x + i >= width ? width - 1 : x + i;
+        acc += values[row + xx] * k[i + r];
+      }
+      tmp[row + x] = acc;
+    }
+  }
+  const out = new Float32Array(values.length);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let acc = 0;
+      for (let i = -r; i <= r; i++) {
+        const yy = y + i < 0 ? 0 : y + i >= height ? height - 1 : y + i;
+        acc += tmp[yy * width + x] * k[i + r];
+      }
+      out[y * width + x] = acc;
+    }
+  }
+  return out;
+}
