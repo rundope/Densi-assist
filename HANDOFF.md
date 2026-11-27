@@ -9,7 +9,7 @@
 
 ## 0. 한 줄 요약
 
-전기영동 겔·웨스턴 블롯 사진에서 밴드 진하기를 정량하는 **브라우저 전용 웹앱**(ImageJ Gel Analyzer 대체). React 19 + TypeScript + Vite. 현재 v0.3.0, 테스트 31개 통과. 설치 없이 쓰는 단독 실행판 `Densi-assist.html`(HTML 파일 하나, 약 1MB)도 빌드로 만들어진다. GitHub 업로드는 끝났고(저장소 `rundope/Densi-assist`, `main`), 저장소가 **비공개라 무료 요금제에서는 GitHub Pages 불가**(2026-11-27 Settings→Pages 화면에서 "Upgrade or make this repository public" 확인). 그래서 사용자는 저장소의 `Densi-assist.html`을 다운로드해 더블클릭으로 쓴다(README "바로 사용하기"). 공개 전환에 대비해 Pages 워크플로는 `main` push 시 자동 배포로 다시 켜 두었다(비공개인 동안은 deploy 단계가 실패하는 것이 정상). 개인 PC 경로는 공개 대비로 일반 표기(`<이전 PC>` 등)로 바꿨다. 홈페이지 탑재는 **준비만 되어 있고 아직 하지 않았다**.
+전기영동 겔·웨스턴 블롯 사진에서 밴드 진하기를 정량하는 **브라우저 전용 웹앱**(ImageJ Gel Analyzer 대체). React 19 + TypeScript + Vite. 현재 v0.3.0, 테스트 31개 통과. 설치 없이 쓰는 단독 실행판 `Densi-assist.html`(HTML 파일 하나, 약 1MB)도 빌드로 만들어진다. GitHub 업로드는 끝났고(저장소 `rundope/Densi-assist`, `main`), 저장소는 2026-11-27에 **공개로 전환**했고 Pages Source를 GitHub Actions로 설정해 배포에 성공했다. 실제 주소는 **`https://rundope.github.io/Densi-assist/`**(대소문자 구분. 소문자 `densi-assist`는 404). `main` push 시 자동 배포. 비공개로 되돌리면 무료 요금제에서 Pages가 불가하므로 `Densi-assist.html` 다운로드 방식을 쓴다. 개인 PC 경로는 공개 대비로 일반 표기(`<이전 PC>` 등)로 바꿨다. 홈페이지 탑재는 **준비만 되어 있고 아직 하지 않았다**.
 
 ---
 
