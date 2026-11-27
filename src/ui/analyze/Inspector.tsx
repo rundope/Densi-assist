@@ -1,74 +1,49 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { BASELINES, BASELINE_MAP, GROUP_LABELS, VISIBLE_BASELINES, cloneSpec, makeSpec, type BaselineGroup } from '../../core/baseline/registry';
 import type { BaselineMethod, BaselineSpec, Gel, Polarity, Project } from '../../core/types';
 import { analyzeLane, type ProcessedGel } from '../../engine/engine';
 import { newBand, newTarget } from '../../state/project';
-import { findGel, useApp, type Section, type Tool } from '../../state/store';
+import { findGel, useApp } from '../../state/store';
 import { copyLanesToGel, copySettingsToAll } from '../../state/actions';
 import { copyText, Icon, Menu, NumberSlider, Seg, Help } from '../common';
 import { fmt, fmtPct } from '../render';
 import { BAND_DEFAULT_COLOR } from '../colors';
 
+/** 왼쪽 패널: 지금 단계에 필요한 내용만 보여준다 (① 이미지 준비 / ② 레인 / ③ 밴드) */
 export function Inspector({ gel, data }: { gel: Gel; data: ProcessedGel | null }) {
   const project = useApp((s) => s.project);
-  const bandCount = gel.lanes.reduce((s, l) => s + l.bands.length, 0);
+  const tool = useApp((s) => s.ui.tool);
   return (
     <aside className="inspector">
-      <Group tool="select" label="1. 이미지 준비" />
-      <SectionBox id="image" step={1} title="이미지" desc="밴드 색과 이미지 보정" done summary={polarityLabel(gel.preprocess.polarity)}>
-        <ImageSection gel={gel} data={data} />
-      </SectionBox>
-
-      <SectionBox id="background" step={2} title="배경 제거" desc="이미지 전체의 얼룩·그늘 (선택)" done={gel.background.method !== 'none'}
-        summary={gel.background.method === 'none' ? '사용 안 함' : `${gel.background.method === 'rolling-ball' ? 'Rolling ball' : 'Paraboloid'} ${gel.background.radius}px`}>
-        <BackgroundSection gel={gel} />
-      </SectionBox>
-      <Group tool="lane" label="2. 레인" />
-      <SectionBox id="lanes" step={3} title="레인" desc="레인 폭과 샘플 이름" done={gel.lanes.length > 0} summary={`${gel.lanes.length}개`}>
-        <LanesSection gel={gel} project={project} />
-      </SectionBox>
-
-      <Group tool="band" label="3. 밴드" />
-      <SectionBox id="baseline" step={4} title="베이스라인" desc="레인 그래프의 바닥선" done={gel.lanes.length > 0} summary={BASELINE_MAP[gel.baseline.method].label}>
-        <BaselineSection gel={gel} project={project} />
-      </SectionBox>
-      <SectionBox id="bands" step={5} title="밴드 · 타깃" desc="기울기, 면적, 표 복사" done={bandCount > 0} summary={`${bandCount}개`}>
-        <BandsSection gel={gel} data={data} project={project} />
-      </SectionBox>
+      {tool === 'select' && <PrepareSettings gel={gel} />}
+      {tool === 'lane' && (
+        <Block title="레인" sub="레인 폭과 샘플 이름">
+          <LanesSection gel={gel} project={project} />
+        </Block>
+      )}
+      {(tool === 'band' || tool === 'baseline') && (
+        <>
+          <Block title="베이스라인" sub="밴드 밑 바닥선을 정하는 방법">
+            <BaselineSection gel={gel} project={project} />
+          </Block>
+          <Block title="밴드 · 타깃" sub="기울기, 면적, 표 복사">
+            <BandsSection gel={gel} data={data} project={project} />
+          </Block>
+        </>
+      )}
     </aside>
   );
 }
 
-function polarityLabel(p: Polarity) {
-  return p === 'dark-bands' ? '어두운 밴드' : p === 'light-bands' ? '밝은 밴드' : 'OD 변환';
-}
-
-/** 위쪽 작업 순서(1. 이미지 준비 / 2. 레인 / 3. 밴드)와 같은 묶음 이름. 누르면 그 도구로 바뀐다 */
-function Group({ tool, label }: { tool: Tool; label: string }) {
-  const active = useApp((s) => s.ui.tool === tool);
-  const setTool = useApp((s) => s.setTool);
+/** 왼쪽 패널의 한 덩어리. 접거나 펼치지 않고 제목만 크게 보여준다 */
+function Block({ title, sub, help, children }: { title: string; sub?: string; help?: ReactNode; children: ReactNode }) {
   return (
-    <div className={`insp-group ${active ? 'active' : ''}`} onClick={() => setTool(tool)} title={`${label} 도구로 바꾸기`}>
-      {label}
-    </div>
-  );
-}
-
-function SectionBox({ id, step, title, desc, summary, done, children }: { id: Section; step: number; title: string; desc: string; summary?: string; done?: boolean; children: ReactNode }) {
-  const open = useApp((s) => s.ui.openSections.includes(id));
-  const setUi = useApp((s) => s.setUi);
-  return (
-    <section className={`section ${open ? 'open' : ''}`}>
-      <div className="section-head" onClick={() => setUi((ui) => ({ openSections: open ? ui.openSections.filter((x) => x !== id) : [...ui.openSections, id] }))}>
-        <span className={`step ${done ? 'done' : ''}`}>{done ? <Icon name="check" size={12} stroke={3} /> : step}</span>
-        <div className="titles">
-          <h4>{title}</h4>
-          <span className="desc">{desc}</span>
-        </div>
-        {!open && summary && <span className="summary">{summary}</span>}
-        <span className="chev"><Icon name="chev" size={14} /></span>
-      </div>
-      {open && <div className="section-body">{children}</div>}
+    <section className="block">
+      <header className="block-head">
+        <h3>{title}{help && <Help>{help}</Help>}</h3>
+        {sub && <p>{sub}</p>}
+      </header>
+      <div className="block-body">{children}</div>
     </section>
   );
 }
@@ -78,62 +53,59 @@ function useGelUpdate(gelId: string) {
   return (fn: (g: Gel, d: Project) => void, key?: string) => update((d) => { const g = findGel(d, gelId); if (g) fn(g, d); }, key);
 }
 
-// ---------------- ① 이미지 ----------------
+// ---------------- ① 이미지 준비 ----------------
 
-function ImageSection({ gel, data }: { gel: Gel; data: ProcessedGel | null }) {
+const POLARITY_CHOICES: { value: Polarity; title: string; sub: string }[] = [
+  { value: 'dark-bands', title: '어두운 밴드', sub: '밝은 배경에 어두운 띠 (쿠마시·은염색·대부분의 화학발광)' },
+  { value: 'light-bands', title: '밝은 밴드', sub: '어두운 배경에 밝은 띠 (형광)' },
+  { value: 'dark-bands-od', title: '어두운 밴드 (OD 변환)', sub: '필름·투과광 스캔에서 흡광도로 계산' },
+];
+
+/** ① 이미지 준비 단계의 설정: 밴드 색, 이미지 보정, 배경 제거를 한 화면에 모아서 보여준다 */
+function PrepareSettings({ gel }: { gel: Gel }) {
   const up = useGelUpdate(gel.id);
   const p = gel.preprocess;
   const d = gel.display;
-  const warn: string[] = [];
-  if (gel.lossy) warn.push('JPG는 압축으로 값이 바뀌어 있습니다. 가능하면 원본 TIFF를 쓰세요.');
-  if (gel.bitDepth === 8 && !gel.lossy) warn.push('8-bit 이미지라 아주 흐린 밴드와 진한 밴드를 함께 재기 어렵습니다.');
-  const satCount = useMemo(() => {
-    if (!data) return 0;
-    const lvl = data.bitDepth === 32 ? data.maxValue : data.maxValue * 0.999;
-    let c = 0;
-    for (let i = 0; i < data.raw.length; i++) if (data.raw[i] >= lvl) c++;
-    return c;
-  }, [data]);
-
   return (
     <>
-      {warn.map((w) => <div key={w} className="note warn" style={{ marginBottom: 6 }}>{w}</div>)}
-      {satCount > 0 && <div className="note warn" style={{ marginBottom: 6 }}>포화 픽셀 {satCount.toLocaleString()}개 — 해당 밴드는 값이 작게 나올 수 있습니다.</div>}
-
-      <div className="field">
-        <div className="label"><span>밴드 색<Help>측정에서 어느 쪽을 신호로 볼지 정합니다. 화면의 이미지는 바뀌지 않고, 아래 그래프와 측정값에 반영됩니다. 이미지에서 밴드가 어두우면 &quot;밝은 배경에 어두운 밴드&quot;를 고르세요. OD(광학 밀도)는 필름·투과광 스캔에서 흡광도에 비례하는 값을 얻을 때 씁니다.</Help></span></div>
-        <select value={p.polarity} onChange={(e) => up((g) => { g.preprocess.polarity = e.target.value as Polarity; })}>
-          <option value="dark-bands">밝은 배경에 어두운 밴드</option>
-          <option value="light-bands">어두운 배경에 밝은 밴드 (형광 등)</option>
-          <option value="dark-bands-od">어두운 밴드, 광학 밀도(OD)로 변환</option>
-        </select>
-      </div>
-
-      {gel.isRGB && (
-        <div className="field">
-          <div className="label"><span>컬러 → 흑백<Help>컬러 이미지를 흑백으로 바꾸는 방법입니다. 이미지가 이미 흑백(색 없음)이면 무엇을 골라도 결과가 같습니다.</Help></span></div>
-          <select value={p.grayMode} onChange={(e) => up((g) => { g.preprocess.grayMode = e.target.value as Gel['preprocess']['grayMode']; })}>
-            <option value="luminance">밝기 (기본)</option>
-            <option value="mean">RGB 평균</option>
-            <option value="red">빨강 채널</option>
-            <option value="green">초록 채널</option>
-            <option value="blue">파랑 채널</option>
-          </select>
+      <Block title="밴드 색" sub="이미지에서 밴드가 어떻게 보이나요?"
+        help="측정에서 어느 쪽을 신호로 볼지 정합니다. 화면의 이미지는 바뀌지 않고, 아래 그래프와 측정값에 반영됩니다. 이미지에서 밴드가 어두우면 '어두운 밴드'를 고르세요.">
+        <div className="choice-list" role="radiogroup" aria-label="밴드 색">
+          {POLARITY_CHOICES.map((c) => (
+            <button key={c.value} role="radio" aria-checked={p.polarity === c.value} className={`choice ${p.polarity === c.value ? 'on' : ''}`}
+              onClick={() => up((g) => { g.preprocess.polarity = c.value; })}>
+              <span className="radio" aria-hidden />
+              <span className="choice-text"><b>{c.title}</b><small>{c.sub}</small></span>
+            </button>
+          ))}
         </div>
-      )}
+      </Block>
 
-      <NumberSlider label="이미지 기울기 보정" help="사진이 살짝 기울어 찍혔을 때 바로잡습니다. 측정에 반영됩니다." unit="도" min={-10} max={10} step={0.1} value={p.rotateFine}
-        onChange={(v) => up((g) => { g.preprocess.rotateFine = v; }, 'rotateFine')} />
+      <Block title="이미지 보정" sub="오른쪽 &quot;보정 후&quot; 이미지에 바로 반영됩니다">
+        {gel.isRGB && (
+          <div className="field">
+            <div className="label"><span>컬러 → 흑백<Help>컬러 이미지를 흑백으로 바꾸는 방법입니다. 이미지가 이미 흑백(색 없음)이면 무엇을 골라도 결과가 같습니다.</Help></span></div>
+            <Seg value={p.grayMode} onChange={(v) => up((g) => { g.preprocess.grayMode = v as Gel['preprocess']['grayMode']; })}
+              options={[{ value: 'luminance', label: '밝기', title: '밝기 (기본)' }, { value: 'mean', label: '평균', title: 'RGB 평균' },
+                { value: 'red', label: '빨강' }, { value: 'green', label: '초록' }, { value: 'blue', label: '파랑' }]} />
+          </div>
+        )}
+        <NumberSlider label="기울기 보정" help="사진이 살짝 기울어 찍혔을 때 바로잡습니다. 측정에 반영됩니다." unit="도" min={-10} max={10} step={0.1} value={p.rotateFine}
+          onChange={(v) => up((g) => { g.preprocess.rotateFine = v; }, 'rotateFine')} />
+        <NumberSlider label="감마 (밝기 조절)" min={0.1} max={4} step={0.05} value={d.gamma}
+          help="화면 밝기 곡선을 바꿉니다. 1이 원래 밝기이고, 1보다 크면 어두운 곳이 밝아집니다. 측정에도 적용하면 밴드 사이 비율이 실제와 달라질 수 있어 감마가 1이 아닐 때 결과에 표시가 남습니다."
+          extra={<label className="label-extra" title="켜면 감마를 측정에도 사용합니다"><input type="checkbox" checked={d.applyToData} onChange={(e) => up((g) => { g.display.applyToData = e.target.checked; })} />측정에도 적용</label>}
+          onChange={(v) => up((g) => { g.display.gamma = v; }, 'gamma')} />
+        <NumberSlider label="부드럽게 (노이즈 제거)" unit="px" min={0} max={3} step={0.1} value={d.smooth ?? 0}
+          help="점무늬·잡음을 줄입니다(가우시안 블러). 측정에도 적용하면 부드러워진 이미지에서 밴드를 읽습니다. 값이 클수록 가는 밴드가 퍼질 수 있으니 필요한 만큼만 쓰세요."
+          extra={<label className="label-extra" title="켜면 부드럽게 한 이미지에서 측정합니다"><input type="checkbox" checked={d.smoothApply ?? true} onChange={(e) => up((g) => { g.display.smoothApply = e.target.checked; })} />측정에도 적용</label>}
+          onChange={(v) => up((g) => { g.display.smooth = v; }, 'smooth')} />
+      </Block>
 
-      <div className="subhead">이미지 보정</div>
-      <NumberSlider label="감마 (밝기 조절)" min={0.1} max={4} step={0.05} value={d.gamma}
-        help="화면 밝기 곡선을 바꿉니다. 1이 원래 밝기이고, 1보다 크면 어두운 곳이 밝아집니다. 측정에도 적용하면 밴드 사이 비율이 실제와 달라질 수 있어 감마가 1이 아닐 때 결과에 표시가 남습니다."
-        extra={<label className="label-extra" title="켜면 감마를 측정에도 사용합니다"><input type="checkbox" checked={d.applyToData} onChange={(e) => up((g) => { g.display.applyToData = e.target.checked; })} />측정에도 적용</label>}
-        onChange={(v) => up((g) => { g.display.gamma = v; }, 'gamma')} />
-      <NumberSlider label="부드럽게 (노이즈 제거)" unit="px" min={0} max={3} step={0.1} value={d.smooth ?? 0}
-        help="점무늬·잡음을 줄입니다(가우시안 블러). 측정에도 적용하면 부드러워진 이미지에서 밴드를 읽습니다. 값이 클수록 더 뭉개져 가는 밴드가 퍼질 수 있으니 필요한 만큼만 쓰세요."
-        extra={<label className="label-extra" title="켜면 부드럽게 한 이미지에서 측정합니다"><input type="checkbox" checked={d.smoothApply ?? true} onChange={(e) => up((g) => { g.display.smoothApply = e.target.checked; })} />측정에도 적용</label>}
-        onChange={(v) => up((g) => { g.display.smooth = v; }, 'smooth')} />
+      <Block title="배경 제거" sub="이미지 전체의 얼룩·그늘 (선택)"
+        help="이미지 전체의 얼룩·그늘을 지웁니다. 보통은 꺼 두고 ③ 단계의 베이스라인만 써도 충분합니다.">
+        <BackgroundSection gel={gel} />
+      </Block>
     </>
   );
 }
@@ -144,7 +116,6 @@ function BackgroundSection({ gel }: { gel: Gel }) {
   return (
     <>
       <div className="field">
-        <div className="label"><span>방법<Help>이미지 <b>전체</b>의 얼룩·그늘을 지웁니다. 보통은 꺼 두고 ④ 베이스라인만 써도 충분합니다.</Help></span></div>
         <Seg value={b.method} onChange={(v) => up((g) => { g.background.method = v; })}
           options={[{ value: 'none', label: '사용 안 함' }, { value: 'rolling-ball', label: 'Rolling ball' }, { value: 'paraboloid', label: 'Paraboloid' }]} />
       </div>
@@ -154,7 +125,6 @@ function BackgroundSection({ gel }: { gel: Gel }) {
             help="가장 두꺼운 밴드보다 크게 잡으세요."
             onChange={(v) => up((g) => { g.background.radius = Math.round(v); }, 'bgRadius')} />
           <label className="check"><input type="checkbox" checked={b.presmooth} onChange={(e) => up((g) => { g.background.presmooth = e.target.checked; })} />잡티 무시 (작은 먼지·노이즈를 먼저 고름)</label>
-          <label className="check" style={{ marginTop: 8 }}><input type="checkbox" checked={gel.display.showCorrected} onChange={(e) => up((g) => { g.display.showCorrected = e.target.checked; })} />배경 제거된 이미지로 보기</label>
         </>
       )}
     </>
@@ -173,7 +143,7 @@ function LanesSection({ gel, project }: { gel: Gel; project: Project }) {
   const others = project.gels.filter((g) => g.id !== gel.id);
 
   if (!gel.lanes.length) {
-    return <div className="hint">위쪽 <b>2. 레인</b>에서 레인을 그리거나 자동으로 찾으세요.</div>;
+    return <div className="hint">위쪽의 <b>레인 검출 (Auto)</b>을 누르거나, 이미지 위에서 끌어서 레인을 그리세요.</div>;
   }
   return (
     <>
@@ -450,7 +420,7 @@ function BandsSection({ gel, data, project }: { gel: Gel; data: ProcessedGel | n
               </tbody>
             </table>
           ) : (
-            <div className="hint">밴드가 없습니다. 위쪽 <b>3. 밴드</b>에서 그리거나 자동으로 찾으세요.</div>
+            <div className="hint">밴드가 없습니다. 위쪽의 <b>밴드 검출 (Auto)</b>을 누르거나, 레인 안에서 위아래로 끌어 밴드를 그리세요.</div>
           )}
           <div className="btn-row" style={{ marginTop: 8 }}>
             <button className="btn sm primary" disabled={!lane.bands.length} onClick={() => copyTable(false)} title="이 표를 엑셀에 붙여넣을 수 있게 복사"><Icon name="copy" size={14} />표 복사</button>

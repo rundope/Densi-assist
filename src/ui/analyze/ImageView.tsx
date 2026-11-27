@@ -59,8 +59,7 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
     if (!c || !data) return;
     const id = requestAnimationFrame(() => {
       if (c.width !== data.width || c.height !== data.height) { c.width = data.width; c.height = data.height; }
-      const shown = showOriginal ? { ...gel, display: { ...gel.display, showCorrected: false } } : gel;
-      const img = renderToImageData(sourceFor(shown, data), imageDataRef.current);
+      const img = renderToImageData(sourceFor(gel, data, showOriginal ? 'original' : 'corrected'), imageDataRef.current);
       imageDataRef.current = img;
       c.getContext('2d')!.putImageData(img, 0, 0);
     });
@@ -337,7 +336,7 @@ export function ImageView({ gel, data, status }: { gel: Gel; data: ProcessedGel 
     >
       {data && (
         <>
-          <canvas ref={canvasRef} className="image" style={{ transform: `translate(${view.tx}px, ${view.ty}px) scale(${view.scale})` }} />
+          <canvas ref={canvasRef} className="image" style={{ transform: `translate(${view.tx}px, ${view.ty}px) scale(${view.scale})`, imageRendering: view.scale >= 1 ? 'pixelated' : 'auto' }} />
           <svg
             className="overlay"
             width={data.width}

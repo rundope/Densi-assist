@@ -35,21 +35,48 @@ function smoothed(values: Float32Array, w: number, h: number, sigma: number): Fl
   return out;
 }
 
-export function sourceFor(gel: Gel, data: ProcessedGel): RenderSource {
+/** 측정용 값(밴드가 클수록 큰 값)을 원본과 같은 극성으로 되돌린 값. 어두운 밴드는 `최대값 − signal`이 곧 보정된 회색값이다. */
+const restoredCache = new WeakMap<Float32Array, Float32Array>();
+function restoredValues(data: ProcessedGel): Float32Array {
+  const hit = restoredCache.get(data.signal);
+  if (hit) return hit;
+  const out = new Float32Array(data.signal.length);
+  for (let i = 0; i < out.length; i++) out[i] = data.maxValue - data.signal[i];
+  restoredCache.set(data.signal, out);
+  return out;
+}
+
+/** 원본 이미지: 올린 그대로. 화면 밝기 범위만 적용한다. */
+export function originalSource(gel: Gel, data: ProcessedGel): RenderSource {
+  const d = gel.display;
+  return { width: data.width, height: data.height, values: data.raw, min: d.min, max: d.max > d.min ? d.max : d.min + 1, gamma: 1, invert: false };
+}
+
+/**
+ * 보정 후 이미지: 실제 측정에 쓰이는 값에 감마·부드럽게·배경 제거 등이 반영된 모습을 원본과 같은 극성·같은 밝기 범위로 그린다.
+ * 보정을 하나도 하지 않으면 원본과 똑같이 보여야 한다(tests/core.test.ts에서 확인).
+ * 측정에 적용하지 않기로 한 보정(감마·부드럽게)은 화면에만 덧입힌다.
+ */
+export function correctedSource(gel: Gel, data: ProcessedGel): RenderSource {
   const d = gel.display;
   const sigma = d.smooth ?? 0;
-  if (d.showCorrected) {
-    const [lo, hi] = data.signalRange;
-    return {
-      width: data.width, height: data.height, values: smoothed(data.signal, data.width, data.height, sigma),
-      min: Math.min(lo, 0), max: hi > lo ? hi : lo + 1, gamma: d.gamma,
-      invert: gel.preprocess.polarity !== 'light-bands',
-    };
-  }
+  const p = gel.preprocess.polarity;
+  const gammaBaked = d.applyToData && d.gamma !== 1;
+  const smoothBaked = (d.smoothApply ?? true) && sigma > 0;
+  // OD는 로그 변환이라 되돌릴 수 없으므로 원본 값에 화면용 보정만 얹는다(이 경우 배경 제거는 화면에 안 보임)
+  const values = p === 'dark-bands' ? restoredValues(data) : p === 'light-bands' ? data.signal : data.raw;
+  const baked = p === 'dark-bands' || p === 'light-bands';
+  const shown = sigma > 0 && !(baked && smoothBaked) ? smoothed(values, data.width, data.height, sigma) : values;
   return {
-    width: data.width, height: data.height, values: smoothed(data.raw, data.width, data.height, sigma),
-    min: d.min, max: d.max > d.min ? d.max : d.min + 1, gamma: d.gamma, invert: false,
+    width: data.width, height: data.height, values: shown,
+    min: d.min, max: d.max > d.min ? d.max : d.min + 1,
+    gamma: baked && gammaBaked ? 1 : d.gamma, invert: false,
   };
+}
+
+/** 화면에 그릴 소스. 기본은 보정 후 이미지이고, 'original'이면 올린 그대로. */
+export function sourceFor(gel: Gel, data: ProcessedGel, mode: 'corrected' | 'original' = 'corrected'): RenderSource {
+  return mode === 'original' ? originalSource(gel, data) : correctedSource(gel, data);
 }
 
 export function renderToImageData(src: RenderSource, target?: ImageData): ImageData {

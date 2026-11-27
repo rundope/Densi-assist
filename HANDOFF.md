@@ -9,7 +9,7 @@
 
 ## 0. 한 줄 요약
 
-전기영동 겔·웨스턴 블롯 사진에서 밴드 진하기를 정량하는 **브라우저 전용 웹앱**(ImageJ Gel Analyzer 대체). React 19 + TypeScript + Vite. 현재 v0.3.0(이후 기능 추가됨), 테스트 34개(`real-gel.png` 없으면 33 통과 + 1 skip). 설치 없이 쓰는 단독 실행판 `Densi-assist.html`(HTML 파일 하나, 약 1MB)도 빌드로 만들어진다. GitHub 업로드는 끝났고(저장소 `rundope/Densi-assist`, `main`), 저장소는 2026-11-27에 **공개로 전환**했고 Pages Source를 GitHub Actions로 설정해 배포에 성공했다. 실제 주소는 **`https://rundope.github.io/Densi-assist/`**(대소문자 구분. 소문자 `densi-assist`는 404). `main` push 시 자동 배포. 비공개로 되돌리면 무료 요금제에서 Pages가 불가하므로 `Densi-assist.html` 다운로드 방식을 쓴다. 개인 PC 경로는 공개 대비로 일반 표기(`<이전 PC>` 등)로 바꿨다. 홈페이지 탑재는 **준비만 되어 있고 아직 하지 않았다**.
+전기영동 겔·웨스턴 블롯 사진에서 밴드 진하기를 정량하는 **브라우저 전용 웹앱**(ImageJ Gel Analyzer 대체). React 19 + TypeScript + Vite. 현재 v0.3.0(이후 기능 추가됨), 테스트 39개(`real-gel.png` 없으면 38 통과 + 1 skip). 설치 없이 쓰는 단독 실행판 `Densi-assist.html`(HTML 파일 하나, 약 1MB)도 빌드로 만들어진다. GitHub 업로드는 끝났고(저장소 `rundope/Densi-assist`, `main`), 저장소는 2026-11-27에 **공개로 전환**했고 Pages Source를 GitHub Actions로 설정해 배포에 성공했다. 실제 주소는 **`https://rundope.github.io/Densi-assist/`**(대소문자 구분. 소문자 `densi-assist`는 404). `main` push 시 자동 배포. 비공개로 되돌리면 무료 요금제에서 Pages가 불가하므로 `Densi-assist.html` 다운로드 방식을 쓴다. 개인 PC 경로는 공개 대비로 일반 표기(`<이전 PC>` 등)로 바꿨다. 홈페이지 탑재는 **준비만 되어 있고 아직 하지 않았다**.
 
 ---
 
@@ -119,19 +119,19 @@
 | `analyze/PrepareView.tsx` | ① 이미지 준비 화면: 원본과 보정 후 이미지(= 측정에 쓰이는 이미지, 원본과 같은 모습으로 다시 뒤집어 표시)를 캔버스 두 개로 나란히 표시 |
 | `analyze/ImageView.tsx` | 이미지 캔버스 + SVG 오버레이(레인·밴드·기울기 손잡이), 줌/팬, 모든 드래그 상호작용, "원본 이미지 보기" 토글(O 키), 도구 안내창(왼쪽 위) |
 | `analyze/ProfilePanel.tsx` | 레인 띠 이미지 + 프로파일 그래프(기울어진 밴드 구간은 기울인 프로파일로 그림), 밴드 시작·끝점 동그라미(수동 모드에서 드래그), 전체 레인 비교, "수동으로 다듬기" |
-| `analyze/Inspector.tsx` | **왼쪽 패널**: 묶음 1.선택(①이미지) / 2.레인(②배경 제거, ③레인) / 3.밴드(④베이스라인, ⑤밴드·타깃). 밴드 표(#, 기울기, 면적, %), 표 복사/겔 전체 복사, 타깃 칩(밴드 고른 뒤 누르면 같은 높이 밴드에 일괄 지정) |
+| `analyze/Inspector.tsx` | **왼쪽 패널: 지금 단계(① 이미지 준비 / ② 레인 / ③ 밴드)의 내용만 표시**(접고 펼치는 항목 없음). ① = 밴드 색(큰 라디오 카드)·이미지 보정(컬러→흑백·기울기·감마·부드럽게)·배경 제거를 `Block`으로 통합. ③ = 베이스라인 + 밴드·타깃. 안내 문구(8-bit·JPG·포화)는 패널이 아니라 `PrepareView` 원본 이미지 아래에 표시. 밴드 표(#, 기울기, 면적, %), 표 복사/겔 전체 복사, 타깃 칩 |
 | `results/ResultsView.tsx` | 결과 탭(단순화): 전체 밴드 표, 타깃 지정 시에만 샘플별 요약+막대그래프, 엑셀/CSV/표 복사 |
 | `results/export.ts` | xlsx(시트: 샘플별 요약, 밴드, 설정), CSV(BOM), TSV. 동적 import로 지연 로딩 |
 | `calibration/CalibrationView.tsx` | 표준곡선 화면 — **어디에서도 렌더링하지 않음(숨김)** |
 | `common.tsx` | `Icon`, `NumberSlider`(`help`·`extra` 슬롯), **`Help`(라벨 옆 ? 아이콘, 누르면 설명 팝업, fixed 위치)**, `Menu`(fixed 위치라 가로 스크롤 영역에서도 안 잘림), `Seg`, `Menu`, `Modal`, `useElementSize`, `copyText`(HTTP에서도 되는 클립보드 복사), `pickFiles` |
-| `render.ts` | LUT 렌더(`renderToImageData`, `sourceFor` — 화면용 블러는 여기서 캐시해 적용), 썸네일, 숫자 포맷 |
+| `render.ts` | LUT 렌더(`renderToImageData`), **`originalSource`(원본)·`correctedSource`(보정 후 = 측정용 `signal`을 원본 극성으로 되돌린 값, 같은 밝기 범위)·`sourceFor(gel,data,mode)`**: 모든 화면(① 비교, ②·③ 이미지, 레인 띠, 썸네일)이 이 한 곳의 표시 규칙을 씀, 썸네일, 숫자 포맷 |
 | `colors.ts` | 오버레이 색(선택 레인 파랑 `#0a7cff`, 레인 자홍 `#e5007d`, 밴드 주황 `#ff8a00`) |
 | `styles.css` | 전체 스타일(라이트/다크 CSS 변수) |
 
 ### tests/
 | 파일 | 내용 |
 |---|---|
-| `core.test.ts` | 34개(+화면용 가우시안 블러 3개): Whittaker 솔버, 베이스라인 면적 회수, 2D 배경, 합성 겔(극성·레인·선형성), 16-bit TIFF, 실제 겔(레인 7개), 밴드 기울기, 수동 바닥선, SHA-256, 표준곡선, 정규화 |
+| `core.test.ts` | 39개(+화면용 가우시안 블러 3개, 원본/보정 후 표시 일관성 5개): Whittaker 솔버, 베이스라인 면적 회수, 2D 배경, 합성 겔(극성·레인·선형성), 16-bit TIFF, 실제 겔(레인 7개), 밴드 기울기, 수동 바닥선, SHA-256, 표준곡선, 정규화 |
 | `fixtures/gel16.tif` | 합성 16-bit TIFF (저장소 포함) |
 | `fixtures/real-gel.png` | **사용자가 대화에 첨부한 실제 SDS-PAGE 사진**(사다리 + 시료 6레인). gitignore. 없으면 해당 테스트 skip |
 
@@ -155,7 +155,7 @@ npm run check
 
 | 명령 | 결과 |
 |---|---|
-| `npm test` | Vitest 34개 (real-gel.png 없으면 33 통과 + 1 skip) |
+| `npm test` | Vitest 39개 (real-gel.png 없으면 38 통과 + 1 skip) |
 | `npm run build` | `dist/`(웹 배포용, 상대 경로) + `Densi-assist.html`(루트와 `dist/` 양쪽) |
 | `npm run build:standalone` | `Densi-assist.html`만 |
 | `npm run preview` | `dist/` 미리보기 |
@@ -232,6 +232,8 @@ gitignore 대상이라 새 컴퓨터에는 없다. 필요하면 아래 내용으
 - **클라우드 세션에서 `npm ci`가 403**이면 환경 네트워크 허용 목록에 `cdn.sheetjs.com`(xlsx 설치 주소)이 없는 것. 환경 설정에서 추가해야 함
 - **`main` 직접 푸시 불가**: 브랜치 → PR → squash 병합. squash 병합 후에는 같은 브랜치 이름을 재사용하지 말고 `origin/main`에서 새 브랜치를 땀(강제 푸시는 차단됨)
 - 보안: 저장소가 공개이므로 사용자 실험 이미지(`real-gel.png`, 붙여넣은 이미지 등)를 커밋하지 말 것. 문서용 그림은 합성 이미지로 만든다
+- **화면 표시 규칙은 한 곳(`render.ts`)에서만 정할 것**. 원본/보정 후를 각자 다른 밝기 범위로 그렸다가 "보정 안 했는데 개선돼 보임", "단계 넘기면 원본으로 돌아감" 오류가 났음(2026-11-27). 보정을 안 하면 두 이미지가 완전히 같아야 하며 `tests/core.test.ts`가 이를 확인함
+- **합성 이미지만으로 검증하지 말 것**: 사용자가 실제로 쓰는 사진(예: 4-bit 디더링·8-bit RGB 파워포인트 복사본)으로도 클릭해 보고, 화면 캡처를 눈으로 비교할 것. 축소 표시 때 `image-rendering: pixelated`가 거칠게 보여 "원본처럼 보인다"는 오해를 낳았음(축소 시 `auto`로 수정)
 - Windows PowerShell 5.1의 `Get-Content`/`Set-Content`는 기본 인코딩이 ANSI라 **한글 주석이 깨짐** → 파일 수정은 편집 도구로, 부득이하면 `[System.IO.File]::WriteAllText(path, text, New-Object System.Text.UTF8Encoding $false)`
 
 ---
@@ -414,7 +416,7 @@ Densito Assist (<이전 PC 경로>/Densito-assist) is a browser-based gel/wester
 
 ## 12. 새 세션의 첫 체크리스트
 
-1. **설치와 검사**: `npm ci` → `npm run check`. 기대값: 타입 오류 0, 테스트 34개 중 33개 통과(`real-gel.png`가 없으면 1개 skip), 빌드 후 `Densi-assist.html` 갱신 로그. `npm ci`가 실패하면 먼저 `cdn.sheetjs.com` 접근 가능 여부 확인
+1. **설치와 검사**: `npm ci` → `npm run check`. 기대값: 타입 오류 0, 테스트 39개 중 38개 통과(`real-gel.png`가 없으면 1개 skip), 빌드 후 `Densi-assist.html` 갱신 로그. `npm ci`가 실패하면 먼저 `cdn.sheetjs.com` 접근 가능 여부 확인
 2. **개발 서버로 화면 확인**: `npm run dev` → 첫 화면에서 "데모 프로젝트로 둘러보기" → 이미지 3장, 레인·밴드 표시, ① ② ③ 도구 버튼, 결과 탭이 나오는지. (Claude 데스크톱 앱을 쓰면 3장의 `.claude/launch.json`을 다시 만든다)
 3. **단독 실행판 확인**: 탐색기에서 `index.html` 또는 `Densi-assist.html`을 더블클릭(Chrome/Edge) → 이미지 추가 → 레인 검출 (Auto) → 밴드 검출 (Auto)가 되는지
 4. **Git 상태 확인**: 새 컴퓨터에서 저장소로 받았는지(`git status`), 아니면 폴더 복사인지. 이 PC에서는 Git 커밋이 한 번도 없었음. GitHub에 올렸다면 Actions의 CI 통과 여부

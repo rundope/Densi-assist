@@ -12,6 +12,9 @@ import { extractProfile } from '../src/core/profile';
 import { detectLanes } from '../src/core/lanes';
 import { summarize, type BandRow } from '../src/core/results';
 import { newBand } from '../src/state/project';
+import { correctedSource, originalSource } from '../src/ui/render';
+import type { Gel } from '../src/core/types';
+import type { ProcessedGel } from '../src/engine/engine';
 
 function gaussProfile(n: number, peaks: { c: number; s: number; a: number }[], bg: (i: number) => number) {
   const y = new Float64Array(n);
@@ -338,5 +341,47 @@ describe('화면용 가우시안 블러', () => {
     const b = gaussianBlur(v, w, h, 1.5);
     const sd = (a: Float32Array) => { const m = a.reduce((s2, x) => s2 + x, 0) / a.length; return Math.sqrt(a.reduce((s2, x) => s2 + (x - m) ** 2, 0) / a.length); };
     expect(sd(b)).toBeLessThan(sd(v) * 0.1);
+  });
+});
+
+describe('이미지 준비 화면: 원본과 보정 후 이미지의 표시 일관성', () => {
+  const w = 30, h = 20;
+  const raw = new Float32Array(w * h).map((_, i) => 120 + ((i * 37) % 90)); // 8-bit 범위의 임의 값
+  const mk = (polarity: 'dark-bands' | 'light-bands', display: Partial<Gel['display']> = {}, signalFrom: Float32Array = raw) => {
+    const signal = toSignal({ width: w, height: h, data: signalFrom, maxValue: 255, channels: 1 } as never, polarity);
+    const data = { width: w, height: h, raw, signal, maxValue: 255 } as unknown as ProcessedGel;
+    const gel = {
+      preprocess: { polarity },
+      display: { min: 100, max: 230, gamma: 1, showCorrected: false, applyToData: true, smooth: 0, smoothApply: true, ...display },
+    } as unknown as Gel;
+    return { data, gel };
+  };
+  const same = (a: Float32Array, b: Float32Array) => Math.max(...Array.from(a).map((x, i) => Math.abs(x - b[i])));
+
+  it('보정을 하나도 안 하면 어두운 밴드 이미지도 원본과 똑같이 보인다', () => {
+    const { data, gel } = mk('dark-bands');
+    const o = originalSource(gel, data), c = correctedSource(gel, data);
+    expect(same(c.values, o.values)).toBeLessThan(1e-3);
+    expect([c.min, c.max, c.gamma, c.invert]).toEqual([o.min, o.max, o.gamma, o.invert]);
+  });
+  it('밝은 밴드 이미지도 마찬가지다', () => {
+    const { data, gel } = mk('light-bands');
+    expect(same(correctedSource(gel, data).values, originalSource(gel, data).values)).toBeLessThan(1e-3);
+  });
+  it('부드럽게를 측정에 적용하면 보정 후 이미지가 블러된 모습이고, 두 번 블러되지 않는다', () => {
+    const blurred = gaussianBlur(raw, w, h, 1.5);
+    const { data, gel } = mk('dark-bands', { smooth: 1.5, smoothApply: true }, blurred);
+    expect(same(correctedSource(gel, data).values, blurred)).toBeLessThan(1e-3);
+  });
+  it('부드럽게를 화면에만 적용하면(측정 미적용) 화면만 블러되고 측정용 값은 그대로다', () => {
+    const { data, gel } = mk('dark-bands', { smooth: 1.5, smoothApply: false });
+    expect(same(correctedSource(gel, data).values, gaussianBlur(raw, w, h, 1.5))).toBeLessThan(1e-3);
+    expect(same(Float32Array.from(data.signal, (v) => 255 - v), raw)).toBeLessThan(1e-3);
+  });
+  it('감마: 측정에 적용하면 이미 반영되어 화면 감마는 1, 화면에만이면 화면 감마를 쓴다', () => {
+    const baked = mk('dark-bands', { gamma: 2, applyToData: true });
+    const displayOnly = mk('dark-bands', { gamma: 2, applyToData: false });
+    expect(correctedSource(baked.gel, baked.data).gamma).toBe(1);
+    expect(correctedSource(displayOnly.gel, displayOnly.data).gamma).toBe(2);
   });
 });
