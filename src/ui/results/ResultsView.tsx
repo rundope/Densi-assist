@@ -30,7 +30,7 @@ export function ResultsView() {
   const summary = useMemo(() => summarize(rows, 'area', null, ref), [rows, ref]);
   const tname = (id: string | null) => project.targets.find((t) => t.id === id)?.name ?? '';
   const saturated = rows.filter((r) => r.saturatedPixels > 0).length;
-  const nonLinear = project.gels.filter((g) => g.display.applyToData);
+  const nonLinear = project.gels.filter((g) => g.display.applyToData && g.display.gamma !== 1);
   const activeTarget = chartTarget && summary.targets.includes(chartTarget) ? chartTarget : summary.targets[0] ?? null;
 
   if (!project.gels.length) {
