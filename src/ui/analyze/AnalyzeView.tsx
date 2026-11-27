@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { Gel } from '../../core/types';
 import { engine } from '../../engine/engine';
 import { useAllProcessed, useGelStatus } from '../../engine/hooks';
-import { addImageFiles, analyzeAllGels, autoDetectLanes, detectBandsAction, removeGel } from '../../state/actions';
+import { addImageFiles, analyzeAllGels, autoDetectLanes, clearLanes, detectBandsAction, removeGel } from '../../state/actions';
 import { findGel, useActiveGel, useApp } from '../../state/store';
 import { Icon, Menu, pickFiles } from '../common';
 import { thumbnailUrl } from '../render';
@@ -35,6 +35,10 @@ export function AnalyzeView() {
                   </button>
                   <button className="btn sm" onClick={() => autoDetectLanes(gel.id)} title="레인을 자동으로 찾습니다">
                     <Icon name="wand" size={14} />레인 검출 (Auto)
+                  </button>
+                  <button className="btn sm danger" disabled={!gel.lanes.length} onClick={() => clearLanes(gel.id)}
+                    title="이 이미지의 레인과 그 안의 밴드를 모두 지웁니다 (알림의 되돌리기 또는 Ctrl+Z로 복구)">
+                    <Icon name="trash" size={14} />레인 모두 삭제
                   </button>
                 </div>
               )}

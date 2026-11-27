@@ -168,6 +168,7 @@ You can do this right away without switching tools.
 - **Move**: drag the inside of a lane. Hold **Shift** while dragging to move horizontally only.
 - **Resize**: hover over the top, bottom, left or right edge of a lane until the cursor changes to an arrow, then drag. Only that edge moves.
 - **Delete**: select the lane and press **Delete**, or use the trash icon in the ③ Lanes table on the left.
+- **Delete all**: click **레인 모두 삭제** (Delete all lanes) in the toolbar above the image to remove every lane in this image and the bands inside them. Use **되돌리기** (Undo) in the notice or Ctrl+Z to restore them.
 - **Next/previous lane**: **← →** keys.
 
 ### ③ 레인 (Lanes) settings (left panel)

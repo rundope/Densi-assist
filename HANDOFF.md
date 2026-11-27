@@ -108,7 +108,7 @@
 |---|---|
 | `store.ts` | zustand `useApp`: `project`(저장 대상)·`ui`·실행취소(150단계, 같은 키 1.2초 내 연속 변경은 한 단계로)·토스트. `setTool`(도구 변경 시 `SECTIONS_FOR_TOOL`로 오른쪽 패널 자동 펼침: select→이미지, lane→배경제거+레인, band→밴드·타깃, baseline→베이스라인) |
 | `project.ts` | 기본값 팩토리 `newProject/newGel/newLane/newBand/newTarget/newCalibration`, `migrateProject`(구버전 필드 보정) |
-| `actions.ts` | `addImageFiles`, `nameClipboardFiles`, `pasteFromClipboard`(붙여넣기 버튼), `removeGel`, `autoDetectLanes`, `detectBandsForLane`/`detectBandsAction`, `analyzeAllGels`, `copyLanesToGel`, `copySettingsToAll`, `createDemoProject`(합성 겔 3장 + 숨겨진 표준곡선 1개) |
+| `actions.ts` | `clearLanes`(레인·밴드 모두 삭제), `addImageFiles`, `nameClipboardFiles`, `pasteFromClipboard`(붙여넣기 버튼), `removeGel`, `autoDetectLanes`, `detectBandsForLane`/`detectBandsAction`, `analyzeAllGels`, `copyLanesToGel`, `copySettingsToAll`, `createDemoProject`(합성 겔 3장 + 숨겨진 표준곡선 1개) |
 | `persist.ts` | IndexedDB 자동 저장(700ms 디바운스; 키 `projects:index`, `projects:current`, `project:<id>`), `.densi` 파일(zip: `project.json` + `images/<imageKey>`) 내보내기/가져오기 |
 
 ### src/ui — 화면
@@ -420,6 +420,7 @@ Densito Assist (<이전 PC 경로>/Densito-assist) is a browser-based gel/wester
 | 09-26~27 | 새 PC 이관 | 새 PC(`<새 PC 작업 폴더>`)에서 환경 점검 → Node 설치 → 테스트·개발 서버·단독 실행판·하위 경로 재확인. 폴더를 `Densi-assist`로 바꾸고 이름 통일(`.densi`, `densi-project/1`, 옛 형식 호환 없음) |
 | 09-27 | 배포 준비 2 | 매뉴얼 4개 언어(ko/en/ja/zh-CN), zip 재생성(프로젝트 바깥), `.gitignore`에 `*.zip`, `git init`, 불필요 파일(`dist/`, 프로젝트 안 옛 zip) 삭제 |
 | 11-27 | 클라우드 세션 | `cdn.sheetjs.com` 허용 후 검증 → 저장소 공개 + GitHub Pages 배포(`main` push 자동) → README 주소 → **이미지 붙여넣기**(Ctrl+V·버튼) → **화면 구조 변경**(이미지 띠 위, 패널 왼쪽) → **부드럽게(노이즈 제거)** 추가 → 부드럽게·감마 "측정에도 적용"(기본 켜짐) → ? 도움말 → "화면 밝기" 제거 → 이미지 메뉴 잘림 수정 → 매뉴얼 부드럽게 전/후 그림 |
+| 11-27 | 레인 모두 삭제 | 이미지 위 도구막대(② 레인)에 "레인 모두 삭제" 버튼(`clearLanes`, 되돌리기 알림) |
 | 11-27 | 레인 단계 2 | 할 일 순서 직접→자동, 자동 검출 주의 문구, 말풍선은 레인 수 + 그래프 보기 안내, 그래프 보기 전환 강조, 그래프 머리 옛 버튼 3개 제거, 자동 레인 검출 간격 보정(8→10개) |
 | 11-27 | 레인 단계 | 레인 패널 제목·할 일 3가지, 노란 말풍선, 옛 도구 안내창·원본 이미지 보기 제거, 레인 크기 맞춤 버그 수정, 확대 시 오른쪽 버튼 이동 안내 |
 | 11-27 | 구조 개편 | 목업 승인 → 스텝바(① 이미지 준비 › ② 레인 › ③ 밴드 › ④ 결과, 크고 눈에 띄게, 지금 할 일·다음 버튼) + ① 이미지 준비 화면(원본 vs 측정에 쓰이는 이미지) 구현, 매뉴얼 4개 언어 갱신 |
