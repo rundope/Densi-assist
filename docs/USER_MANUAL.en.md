@@ -112,7 +112,7 @@ The settings panel (H) is grouped as: **1. 이미지 준비** (Prepare image) �
 
 ## 4. ① Select — check the image
 
-After you add an image you start at **① 이미지 준비** (Prepare image). The original and the **image used for measurement** are shown side by side, and changing the **① 이미지** (Image) settings on the left (band color, color → gray, tilt, gamma, smoothing) updates the right-hand image immediately. Bands are read as **brighter = larger value** (an image with dark bands is inverted so the bands appear white; if they appear white, the setting is right), and this image is used for all calculations in ② Lanes, ③ Bands and ④ Results. When you are ready, click **다음: 레인 잡기** (Next: Lanes) at the top right.
+After you add an image you start at **① 이미지 준비** (Prepare image). The original and the **adjusted image** are shown side by side, and changing the **① 이미지** (Image) settings on the left (color → gray, tilt, gamma, smoothing, background removal) updates the right-hand image immediately. The right-hand image is the original with those settings applied, and it is used for all calculations in ② Lanes, ③ Bands and ④ Results. **밴드 색** (Band color) is used only for the calculation, so the picture looks like the original. When you are ready, click **다음: 레인 잡기** (Next: Lanes) at the top right.
 
 ### Band color
 
