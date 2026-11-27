@@ -63,12 +63,14 @@ export function NumberSlider(props: {
   log?: boolean;
 }) {
   const { label, value, min, max, step, unit, hint, help, extra, onChange } = props;
+  // 짧은 단위(px, %, 도)는 숫자 칸 바로 뒤에 붙여 어떤 값의 단위인지 한눈에 보이게 한다
+  const shortUnit = !!unit && unit.length <= 3;
   const [text, setText] = useState(String(value));
   useEffect(() => setText(String(roundTo(value, step))), [value, step]);
   return (
     <div className="field">
-      <div className="label"><span>{label}{help && <Help>{help}</Help>}</span>{extra ?? (unit && <span className="hint">{unit}</span>)}</div>
-      <div className="slider-row">
+      <div className="label"><span>{label}{help && <Help>{help}</Help>}</span>{extra ?? (unit && !shortUnit && <span className="hint">{unit}</span>)}</div>
+      <div className={`slider-row ${shortUnit ? 'with-unit' : ''}`}>
         <input type="range" min={min} max={max} step={step} value={Math.min(max, Math.max(min, value))} onChange={(e) => onChange(Number(e.target.value))} />
         <input
           type="number" step={step} value={text}
@@ -79,6 +81,7 @@ export function NumberSlider(props: {
           }}
           onBlur={() => setText(String(roundTo(value, step)))}
         />
+        {shortUnit && <span className="unit">{unit}</span>}
       </div>
       {hint && <div className="hint">{hint}</div>}
     </div>

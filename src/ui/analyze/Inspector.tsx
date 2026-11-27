@@ -134,7 +134,7 @@ function BackgroundSection({ gel }: { gel: Gel }) {
       {b.method !== 'none' && (
         <>
           {b.method === 'constant' ? (
-            <NumberSlider label="기준 위치" unit="% (어두운 쪽부터)" min={0} max={50} step={1} value={b.constantPct ?? 10}
+            <NumberSlider label="기준 위치" unit="%" min={0} max={50} step={1} value={b.constantPct ?? 10}
               help="신호가 낮은 쪽(배경에 해당) 몇 %의 값을 배경으로 볼지 정합니다. 밴드가 이미지를 많이 차지하면 낮게, 배경이 넓으면 높게 잡으세요."
               onChange={(v) => up((g) => { g.background.constantPct = Math.round(v); }, 'bgConst')} />
           ) : (
@@ -146,7 +146,8 @@ function BackgroundSection({ gel }: { gel: Gel }) {
             help="추정한 배경을 얼마나 뺄지 정합니다. 100%는 모두 빼고, 낮추면 일부만 빼서 약하게 제거합니다."
             onChange={(v) => up((g) => { g.background.strength = Math.round(v); }, 'bgStrength')} />
           {b.method !== 'constant' && (
-            <label className="check"><input type="checkbox" checked={b.presmooth} onChange={(e) => up((g) => { g.background.presmooth = e.target.checked; })} />잡티 무시 (작은 먼지·노이즈를 먼저 고름)</label>
+            <label className="check"><input type="checkbox" checked={b.presmooth} onChange={(e) => up((g) => { g.background.presmooth = e.target.checked; })} />잡티 무시
+              <Help>배경을 계산하기 전에 이미지를 3×3 픽셀씩 살짝 뭉개서, 작은 먼지·잡음 점 때문에 배경이 잘못 낮게 잡히지 않게 합니다(ImageJ 기본값과 같음). 단, 잡음이 많은 이미지(8-bit 캡처·파워포인트 복사본 등)에서는 배경을 너무 높게 잡아 <b>흐린 밴드를 깎을 수 있습니다</b>. 켜고 끈 상태로 결과를 비교해 보세요.</Help></label>
           )}
         </>
       )}
