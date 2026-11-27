@@ -95,8 +95,9 @@
 ### src/engine — 처리 엔진
 | 파일 | 역할 |
 |---|---|
-| `engine.ts` | `engine`(겔별 처리 상태·캐시, `ensure`, `whenReady`, `processingKey` = 이미지+페이지+전처리+2D배경+(감마를 정량에 적용할 때만 표시 설정)), 워커 오류 시 오류 상태로 전환. `analyzeLane`(레인 분석 메모이즈, **tilt별 variant 프로파일·베이스라인**), `variantFor`, `effectiveBaseline` |
-| `processor.worker.ts` | 워커: 회색→기하→(옵션)표시변환→극성→2D배경 제거. `raw`(원본 값, 표시·포화 판정용)와 `signal`(정량용)을 돌려줌 |
+| `engine.ts` | `engine`(겔별 처리 상태·캐시, `ensure`, `whenReady`, `processingKey`, `isBusy`). **겔마다 워커 작업은 하나만**: 처리 중에 설정이 또 바뀌면 최신 요청 하나만 `queued`에 두었다가 끝나면 보냄(슬라이더를 끌 때 일이 쌓이지 않음). 결과가 이미 있으면 진행률 상태로 바꾸지 않아 화면이 번쩍이지 않음. 워커가 같은 "배경 제거 전 단계"를 갖고 있으면 이미지 채널을 생략(`workerBase`, 없으면 워커가 `NEED_CHANNELS`로 다시 요청). `analyzeLane`(레인 분석 메모이즈, **tilt별 variant 프로파일·베이스라인**), `variantFor`, `effectiveBaseline` |
+| `processor.worker.ts` | 워커: 회색→기하→(옵션)부드럽게·감마→극성 = `signal0`, 그다음 배경 제거. **겔마다 중간 결과 캐시**(`signal0`, 배경 추정). 강도만 바뀌면 롤링볼을 다시 계산하지 않음. 메인에는 사본을 보냄 |
+| `workerProtocol.ts` | 메인·워커 공용 약속(`NEED_CHANNELS`, `baseKeyOf`). 워커 파일을 메인에서 import하면 워커 코드가 메인에서 실행되므로 분리 |
 | `createWorker.ts` | 웹 배포용 모듈 워커 생성 |
 | `createWorker.inline.ts` | 단독 실행판용(`?worker&inline`). standalone 빌드에서 alias로 바꿔 끼움 |
 | `hooks.ts` | `useGelStatus`, `useAllProcessed`, `buildBandRows`(결과 행), `useBandRows`, `evaluateCalibration` |
@@ -235,6 +236,8 @@ gitignore 대상이라 새 컴퓨터에는 없다. 필요하면 아래 내용으
 - **화면 표시 규칙은 한 곳(`render.ts`)에서만 정할 것**. 원본/보정 후를 각자 다른 밝기 범위로 그렸다가 "보정 안 했는데 개선돼 보임", "단계 넘기면 원본으로 돌아감" 오류가 났음(2026-11-27). 보정을 안 하면 두 이미지가 완전히 같아야 하며 `tests/core.test.ts`가 이를 확인함
 - **배경 제거를 켜면 되돌린 값의 배경이 가장 밝은 값(255)이 되어, 원본의 밝기 범위(예: 102~221)로 그리면 배경과 흐린 밴드가 모두 흰색으로 잘려 "배경이 너무 많이 제거된 것 같다"고 보임**. 측정값 문제가 아니라 표시 문제였음(사용자 이미지에서 롤링볼 반경 50·400 모두 배경 ≈ 신호 40~50을 통째로 뺌, 흐린 밴드 진폭 14.7 → 12~15, 되돌린 값의 93~96%가 221 초과). `correctedSource`가 배경 제거 시에만 보정된 값에서 밝기 범위를 다시 잡음
 - **합성 이미지만으로 검증하지 말 것**: 사용자가 실제로 쓰는 사진(예: 4-bit 디더링·8-bit RGB 파워포인트 복사본)으로도 클릭해 보고, 화면 캡처를 눈으로 비교할 것. 축소 표시 때 `image-rendering: pixelated`가 거칠게 보여 "원본처럼 보인다"는 오해를 낳았음(축소 시 `auto`로 수정)
+- **성능 측정(사용자 사진 1132×791, Chromium, 2026-11-27)**: 배경 설정 변경 시 보정 후 이미지 갱신까지 — 강도 변경 795→130 ms, 강도 10회 연속 변경 4,152→735 ms(첫 갱신 194 ms), 반경 50→400 680→546 ms(롤링볼 계산 자체가 남은 시간), 화면 번쩍임 없음. 원인: 진행률 상태로 바뀌며 이미지가 사라짐, 워커에 일이 쌓임, 매번 전체 재계산, `percentile`의 숫자 배열 정렬(224k개 139 ms → Float32Array 정렬 21 ms)
+- **Python으로 파일을 고칠 때 `open(p,'w')`와 `open(p).read()`를 한 줄에 쓰지 말 것**(쓰기 열기가 먼저 파일을 비움 → engine.ts가 빈 파일이 된 적 있음, git에서 복구)
 - Windows PowerShell 5.1의 `Get-Content`/`Set-Content`는 기본 인코딩이 ANSI라 **한글 주석이 깨짐** → 파일 수정은 편집 도구로, 부득이하면 `[System.IO.File]::WriteAllText(path, text, New-Object System.Text.UTF8Encoding $false)`
 
 ---

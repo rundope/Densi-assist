@@ -312,34 +312,48 @@ export function removeBackground(
   onProgress?: (fraction: number) => void,
 ): Float32Array | null {
   if (b.method === 'none') return null;
-  const k = Math.min(1, Math.max(0, (b.strength ?? 100) / 100));
-  let bg: Float32Array;
-  let clampAtZero = false;
+  return applyBackground(signal, estimateBackground(signal, width, height, b, onProgress), b);
+}
+
+/** 강도를 빼고 정한 "추정 배경". 무거운 계산(롤링볼 등)은 여기서만 하므로, 강도만 바뀔 때는 이 결과를 다시 쓸 수 있다. */
+export function estimateBackground(
+  signal: Float32Array,
+  width: number,
+  height: number,
+  b: Background2D,
+  onProgress?: (fraction: number) => void,
+): Float32Array {
   if (b.method === 'constant') {
     const pct = Math.min(100, Math.max(0, b.constantPct ?? 10));
-    bg = new Float32Array(signal.length).fill(percentile(signal, pct, pct)[0]);
-    clampAtZero = true;
-  } else {
-    bg = estimateBackground2D(signal, width, height, {
-      method: b.method === 'paraboloid' ? 'paraboloid' : 'rolling-ball',
-      radius: Math.max(1, b.radius),
-      presmooth: b.presmooth,
-      onProgress,
-    });
-    if (b.method === 'flatten') {
-      // 롤링볼 배경은 레인 사이 같은 국소 구조를 따라가 얼룩져 보이므로, 크게 뭉갠 매끈한 면으로 바꾼 뒤 평균을 뺀다
-      bg = smoothSurface(bg, width, height, Math.max(1, b.radius));
-      const mean = sum(bg) / bg.length;
-      for (let i = 0; i < bg.length; i++) bg[i] -= mean;
-    }
+    return new Float32Array(signal.length).fill(percentile(signal, pct, pct)[0]);
   }
-  for (let i = 0; i < signal.length; i++) {
-    const applied = bg[i] * k;
-    bg[i] = applied;
-    const v = signal[i] - applied;
-    signal[i] = clampAtZero && v < 0 ? 0 : v;
+  let bg = estimateBackground2D(signal, width, height, {
+    method: b.method === 'paraboloid' ? 'paraboloid' : 'rolling-ball',
+    radius: Math.max(1, b.radius),
+    presmooth: b.presmooth,
+    onProgress,
+  });
+  if (b.method === 'flatten') {
+    // 롤링볼 배경은 레인 사이 같은 국소 구조를 따라가 얼룩져 보이므로, 크게 뭉갠 매끈한 면으로 바꾼 뒤 평균을 뺀다
+    bg = smoothSurface(bg, width, height, Math.max(1, b.radius));
+    const mean = sum(bg) / bg.length;
+    for (let i = 0; i < bg.length; i++) bg[i] -= mean;
   }
   return bg;
+}
+
+/** 추정 배경에 강도를 곱해 신호에서 뺀다(신호를 그 자리에서 바꿈). 실제로 뺀 양을 새 배열로 돌려준다. */
+export function applyBackground(signal: Float32Array, estimate: Float32Array, b: Background2D): Float32Array {
+  const k = Math.min(1, Math.max(0, (b.strength ?? 100) / 100));
+  const clampAtZero = b.method === 'constant';
+  const applied = new Float32Array(signal.length);
+  for (let i = 0; i < signal.length; i++) {
+    const a = estimate[i] * k;
+    applied[i] = a;
+    const v = signal[i] - a;
+    signal[i] = clampAtZero && v < 0 ? 0 : v;
+  }
+  return applied;
 }
 
 /** 배경 면을 축소 → 가우시안 → 쌍선형 확대로 매끈하게 만든다. sigmaPx는 대략 뭉개는 크기(px). */

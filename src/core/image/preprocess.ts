@@ -144,9 +144,11 @@ export function suggestPolarity(img: RawImage): Polarity {
 
 export function percentile(data: Float32Array, lowPct: number, highPct: number): [number, number] {
   const step = Math.max(1, Math.floor(data.length / 200000));
-  const sample: number[] = [];
-  for (let i = 0; i < data.length; i += step) if (Number.isFinite(data[i])) sample.push(data[i]);
-  sample.sort((a, b) => a - b);
+  // 숫자 배열 + 비교 함수 정렬보다 Float32Array 정렬이 훨씬 빠르다 (슬라이더 반응 속도에 영향)
+  const buf = new Float32Array(Math.ceil(data.length / step));
+  let n = 0;
+  for (let i = 0; i < data.length; i += step) if (Number.isFinite(data[i])) buf[n++] = data[i];
+  const sample = buf.subarray(0, n).sort();
   if (!sample.length) return [0, 1];
   const at = (p: number) => sample[Math.min(sample.length - 1, Math.max(0, Math.round((p / 100) * (sample.length - 1))))];
   return [at(lowPct), at(highPct)];
