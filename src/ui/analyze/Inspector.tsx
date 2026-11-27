@@ -147,7 +147,7 @@ function BackgroundSection({ gel }: { gel: Gel }) {
             onChange={(v) => up((g) => { g.background.strength = Math.round(v); }, 'bgStrength')} />
           {b.method !== 'constant' && (
             <label className="check"><input type="checkbox" checked={b.presmooth} onChange={(e) => up((g) => { g.background.presmooth = e.target.checked; })} />잡티 무시
-              <Help>배경을 계산하기 전에 이미지를 3×3 픽셀씩 살짝 뭉개서, 작은 먼지·잡음 점 때문에 배경이 잘못 낮게 잡히지 않게 합니다(ImageJ 기본값과 같음). 단, 잡음이 많은 이미지(8-bit 캡처·파워포인트 복사본 등)에서는 배경을 너무 높게 잡아 <b>흐린 밴드를 깎을 수 있습니다</b>. 켜고 끈 상태로 결과를 비교해 보세요.</Help></label>
+              <Help>배경을 계산하기 전에 이미지를 3×3 픽셀씩 살짝 뭉개서, 작은 먼지·잡음 점 때문에 배경이 잘못 낮게 잡히지 않게 합니다(ImageJ는 켜는 것이 기본이지만, 이 앱은 기본으로 꺼 둡니다). 단, 잡음이 많은 이미지(8-bit 캡처·파워포인트 복사본 등)에서는 배경을 너무 높게 잡아 <b>흐린 밴드를 깎을 수 있습니다</b>. 켜고 끈 상태로 결과를 비교해 보세요.</Help></label>
           )}
         </>
       )}

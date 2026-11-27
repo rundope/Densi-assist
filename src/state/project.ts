@@ -28,7 +28,7 @@ export function newGel(init: Pick<Gel, 'name' | 'fileName' | 'imageKey' | 'sha25
     id: uid('g'),
     page: 0,
     preprocess: { polarity: 'dark-bands', rotate90: 0, rotateFine: 0, flipH: false, grayMode: 'luminance' },
-    background: { method: 'none', radius: 50, presmooth: true, strength: 100, constantPct: 10 },
+    background: { method: 'none', radius: 50, presmooth: false, strength: 100, constantPct: 10 },
     display: { min: 0, max: init.bitDepth === 8 ? 255 : 65535, gamma: 1, showCorrected: false, applyToData: true, smooth: 0, smoothApply: true },
     profile: { aggregate: 'mean', edgeTrimPct: 10 },
     baseline: makeSpec('rolling-ball'),
