@@ -16,9 +16,7 @@ export const IMAGE_ACCEPT = '.tif,.tiff,.png,.jpg,.jpeg,.bmp,image/*';
 
 export function AnalyzeView() {
   const gel = useActiveGel();
-  const gels = useApp((s) => s.project.gels);
   const ui = useApp((s) => s.ui);
-  const setUi = useApp((s) => s.setUi);
   const { status, data } = useGelStatus(gel);
 
   return (
@@ -26,12 +24,8 @@ export function AnalyzeView() {
       <GelSidebar />
       {!ui.gridView && gel && <Stepper />}
       <div className="center">
+        {(ui.gridView || ui.tool !== 'select') && (
         <div className="toolbar">
-          <div className="seg">
-            <button className={!ui.gridView ? 'on' : ''} onClick={() => setUi({ gridView: false })} title="한 장씩 분석"><Icon name="single" size={14} /></button>
-            <button className={ui.gridView ? 'on' : ''} onClick={() => setUi({ gridView: true })} title={`전체 겔 한눈에 (${gels.length})`}><Icon name="grid" size={14} /></button>
-          </div>
-          <div className="sep" />
           {!ui.gridView && gel && (
             <>
               {ui.tool === 'lane' && (
@@ -66,6 +60,7 @@ export function AnalyzeView() {
             </>
           )}
         </div>
+        )}
         {ui.gridView ? (
           <GridOverview />
         ) : gel ? (
@@ -107,7 +102,13 @@ function GelSidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-head">
-        <h3>이미지 {gels.length}</h3>
+        <div className="sidebar-title">
+          <h3>이미지 {gels.length}</h3>
+          <div className="seg">
+            <button className={!gridView ? 'on' : ''} onClick={() => setUi({ gridView: false })} title="한 장씩 분석"><Icon name="single" size={14} /></button>
+            <button className={gridView ? 'on' : ''} onClick={() => setUi({ gridView: true })} title={`전체 이미지 한눈에 (${gels.length})`}><Icon name="grid" size={14} /></button>
+          </div>
+        </div>
         <button className="btn sm" onClick={async () => addImageFiles(await pickFiles(IMAGE_ACCEPT, true))} title="이미지 추가 (여러 장 가능). 창 어디에나 끌어다 놓거나 Ctrl+V로 붙여넣어도 추가됩니다"><Icon name="plus" size={14} />추가</button>
       </div>
       <div className="gel-list">

@@ -13,7 +13,7 @@ export type Section = 'image' | 'background' | 'lanes' | 'baseline' | 'bands';
 
 /** 도구를 바꾸면 오른쪽 패널에서 그 단계에 맞는 항목만 펼친다 */
 export const SECTIONS_FOR_TOOL: Record<Tool, Section[]> = {
-  select: ['image', 'background'],
+  select: ['image'],
   lane: ['lanes'],
   band: ['bands'],
   baseline: ['baseline'],
