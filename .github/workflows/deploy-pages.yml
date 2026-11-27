@@ -1,9 +1,11 @@
-# GitHub Pages로 배포 (수동 실행)
+# GitHub Pages로 배포 (main에 push되면 자동, 수동 실행도 가능)
 # 사용 전: 저장소 Settings → Pages → Source를 "GitHub Actions"로 설정
-# 실행: Actions 탭 → "Deploy to GitHub Pages" → Run workflow
+# 주소: https://<계정>.github.io/<저장소 이름>/
 name: Deploy to GitHub Pages
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
