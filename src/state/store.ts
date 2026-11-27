@@ -13,8 +13,8 @@ export type Section = 'image' | 'background' | 'lanes' | 'baseline' | 'bands';
 
 /** 도구를 바꾸면 오른쪽 패널에서 그 단계에 맞는 항목만 펼친다 */
 export const SECTIONS_FOR_TOOL: Record<Tool, Section[]> = {
-  select: ['image'],
-  lane: ['background', 'lanes'],
+  select: ['image', 'background'],
+  lane: ['lanes'],
   band: ['bands'],
   baseline: ['baseline'],
 };
@@ -76,7 +76,7 @@ export const useApp = create<AppState>((set, get) => ({
     tool: 'select',
     gridView: false,
     // 처음에는 모두 접어 두고, 필요한 단계만 펼쳐 쓰게 한다
-    openSections: [],
+    openSections: ['image'],
     calibrationId: null,
     profileHeight: 300,
     showAllLanes: false,

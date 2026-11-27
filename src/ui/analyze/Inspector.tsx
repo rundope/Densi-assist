@@ -14,16 +14,16 @@ export function Inspector({ gel, data }: { gel: Gel; data: ProcessedGel | null }
   const bandCount = gel.lanes.reduce((s, l) => s + l.bands.length, 0);
   return (
     <aside className="inspector">
-      <Group tool="select" label="1. 선택" />
+      <Group tool="select" label="1. 이미지 준비" />
       <SectionBox id="image" step={1} title="이미지" desc="밴드 색과 이미지 보정" done summary={polarityLabel(gel.preprocess.polarity)}>
         <ImageSection gel={gel} data={data} />
       </SectionBox>
 
-      <Group tool="lane" label="2. 레인" />
       <SectionBox id="background" step={2} title="배경 제거" desc="이미지 전체의 얼룩·그늘 (선택)" done={gel.background.method !== 'none'}
         summary={gel.background.method === 'none' ? '사용 안 함' : `${gel.background.method === 'rolling-ball' ? 'Rolling ball' : 'Paraboloid'} ${gel.background.radius}px`}>
         <BackgroundSection gel={gel} />
       </SectionBox>
+      <Group tool="lane" label="2. 레인" />
       <SectionBox id="lanes" step={3} title="레인" desc="레인 폭과 샘플 이름" done={gel.lanes.length > 0} summary={`${gel.lanes.length}개`}>
         <LanesSection gel={gel} project={project} />
       </SectionBox>
@@ -43,7 +43,7 @@ function polarityLabel(p: Polarity) {
   return p === 'dark-bands' ? '어두운 밴드' : p === 'light-bands' ? '밝은 밴드' : 'OD 변환';
 }
 
-/** 위쪽 도구(1. 선택 / 2. 레인 / 3. 밴드)와 같은 묶음 이름. 누르면 그 도구로 바뀐다 */
+/** 위쪽 작업 순서(1. 이미지 준비 / 2. 레인 / 3. 밴드)와 같은 묶음 이름. 누르면 그 도구로 바뀐다 */
 function Group({ tool, label }: { tool: Tool; label: string }) {
   const active = useApp((s) => s.ui.tool === tool);
   const setTool = useApp((s) => s.setTool);

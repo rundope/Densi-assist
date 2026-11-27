@@ -8,7 +8,9 @@ import { Icon, Menu, pickFiles } from '../common';
 import { thumbnailUrl } from '../render';
 import { ImageView } from './ImageView';
 import { Inspector } from './Inspector';
+import { PrepareView } from './PrepareView';
 import { ProfilePanel } from './ProfilePanel';
+import { Stepper } from './Stepper';
 
 export const IMAGE_ACCEPT = '.tif,.tiff,.png,.jpg,.jpeg,.bmp,image/*';
 
@@ -22,6 +24,7 @@ export function AnalyzeView() {
   return (
     <div className="analyze">
       <GelSidebar />
+      {!ui.gridView && gel && <Stepper />}
       <div className="center">
         <div className="toolbar">
           <div className="seg">
@@ -31,9 +34,6 @@ export function AnalyzeView() {
           <div className="sep" />
           {!ui.gridView && gel && (
             <>
-              <ToolButton tool="select" num={1} label="선택" kbd="V" />
-              <span className="step-arrow">›</span>
-              <ToolButton tool="lane" num={2} label="레인" kbd="L" />
               {ui.tool === 'lane' && (
                 <div className="subtools">
                   <button className="btn sm active" title="빈 곳을 드래그해 레인을 그립니다. 그린 레인은 바로 끌어서 옮기거나 가장자리로 크기를 바꿀 수 있습니다">
@@ -44,8 +44,6 @@ export function AnalyzeView() {
                   </button>
                 </div>
               )}
-              <span className="step-arrow">›</span>
-              <ToolButton tool="band" num={3} label="밴드" kbd="B" />
               {ui.tool === 'band' && (
                 <div className="subtools">
                   <button className="btn sm active" title="레인 안에서 위아래로 드래그해 밴드를 그립니다. 그린 밴드는 바로 끌어서 옮길 수 있습니다">
@@ -72,8 +70,14 @@ export function AnalyzeView() {
           <GridOverview />
         ) : gel ? (
           <>
-            <ImageView gel={gel} data={data} status={status} />
-            <ProfilePanel gel={gel} data={data} />
+            {ui.tool === 'select' ? (
+              <PrepareView gel={gel} data={data} status={status} />
+            ) : (
+              <>
+                <ImageView gel={gel} data={data} status={status} />
+                <ProfilePanel gel={gel} data={data} />
+              </>
+            )}
           </>
         ) : (
           <div />
@@ -81,23 +85,6 @@ export function AnalyzeView() {
       </div>
       {gel && !ui.gridView ? <Inspector gel={gel} data={data} /> : <GridSideInfo />}
     </div>
-  );
-}
-
-const TOOL_HINT: Record<string, string> = {
-  select: '이미지 설정, 레인·밴드 고르기와 옮기기',
-  lane: '레인 그리기 / 자동 검출',
-  band: '밴드 그리기 / 자동 검출',
-};
-
-/** 작업 단계 버튼: 번호 원 + 이름. 지금 단계는 채운 색으로 강조 */
-function ToolButton({ tool, num, label, kbd }: { tool: 'select' | 'lane' | 'band'; num: number; label: string; kbd: string }) {
-  const cur = useApp((s) => s.ui.tool);
-  const setTool = useApp((s) => s.setTool);
-  return (
-    <button className={`step-tool ${cur === tool ? 'active' : ''}`} onClick={() => setTool(tool)} title={`${TOOL_HINT[tool]} (${kbd})`}>
-      <span className="num">{num}</span>{label}
-    </button>
   );
 }
 
